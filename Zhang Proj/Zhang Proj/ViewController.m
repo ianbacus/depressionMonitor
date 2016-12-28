@@ -22,6 +22,7 @@
     [super viewDidLoad];
     SensorManager *sensorMgr = [[SensorManager alloc] initSensorManager];
     
+    [sensorMgr enableAll];
     //[sensorMgr initSensorManager]
     // Do any additional setup after loading the view, typically from a nib.
 }

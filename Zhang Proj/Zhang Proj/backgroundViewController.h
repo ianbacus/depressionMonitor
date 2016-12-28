@@ -6,16 +6,15 @@
 //  Copyright © 2016 Ian Bacus. All rights reserved.
 //
 
-#ifdef backgroundViewController_h
-#define backgroundViewController_h
 
 #import <UIKit/UIKit.h>
 
 @interface BackgroundViewController : UIViewController
+{
+    IBOutlet UISegmentedControl *segmentedControl;
+}
 
--(IBAction)action:(id)sender;
+- (IBAction)segmentChanged:(id)sender;
 
 @end
 
-
-#endif /* backgroundViewController_h */

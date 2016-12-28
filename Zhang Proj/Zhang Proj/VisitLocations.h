@@ -9,11 +9,15 @@
 #ifndef VisitLocations_h
 #define VisitLocations_h
 
-#import "Sensor.h"
+
 #import <CoreLocation/CoreLocation.h>
+#import "Sensor.h"
 
 @interface VisitLocations : Sensor
 
+@end
+
+@interface VisitLocations() <CLLocationManagerDelegate>;
 @end
 
 

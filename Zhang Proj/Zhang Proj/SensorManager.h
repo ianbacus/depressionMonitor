@@ -32,6 +32,7 @@
 -(instancetype) initSensorManager;
 
 //Dynamically enable or disable sensors from viewcontroller
+-(void) enableAll;
 -(void) enableSensor :(Sensor*)sensor;
 -(void) disableSensor :(Sensor*)sensor;
 

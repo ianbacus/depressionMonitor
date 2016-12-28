@@ -1,14 +1,17 @@
 //
 //  VisitLocations.m
-//  AWARE
+//  Zhang Proj
 //
-//  Created by Yuuki Nishiyama on 7/13/16.
-//  Copyright © 2016 Yuuki NISHIYAMA. All rights reserved.
+//  Created by Ian Bacus on 12/20/16.
+//  Copyright © 2016 Ian Bacus. All rights reserved.
 //
+
+
 
 #import "VisitLocations.h"
 
-@implementation VisitLocations{
+@implementation VisitLocations
+{
     IBOutlet CLLocationManager *locationManager;
 }
 
@@ -73,7 +76,7 @@
           if (placemarks.count > 0) {
               placemark = [placemarks objectAtIndex:0];
               address = [[placemark.addressDictionary valueForKey:@"FormattedAddressLines"] componentsJoinedByString:@", "];
-              NSString* visitMsg = [NSString stringWithFormat:@"I am currently at %@", address];
+              //NSString* visitMsg = [NSString stringWithFormat:@"I am currently at %@", address];
               // Set name
               if (placemark.name != nil) {
                   //[visitDic setObject:placemark.name forKey:@"name"];

@@ -1,13 +1,12 @@
 //
 //  Locations.m
-//  AWARE
+//  Zhang Proj
 //
-//  Created by Yuuki Nishiyama on 11/20/15.
-//  Copyright © 2015 Yuuki NISHIYAMA. All rights reserved.
+//  Created by Ian Bacus on 12/20/16.
+//  Copyright © 2016 Ian Bacus. All rights reserved.
 //
 
 #import "Locations.h"
-//#import "EntityLocation.h"
 #import "AppDelegate.h"
 
 NSString * const AWARE_PREFERENCES_STATUS_LOCATION_GPS = @"status_location_gps";
@@ -33,7 +32,7 @@ NSString * const AWARE_PREFERENCES_MIN_GPS_ACCURACY = @"min_gps_accuracy";
     return self;
 }
 
--(BOOL)startSensor
+-(BOOL)startCollecting
 {
     
     // Get a sensing frequency from settings
@@ -100,7 +99,8 @@ NSString * const AWARE_PREFERENCES_MIN_GPS_ACCURACY = @"min_gps_accuracy";
          * Check an authorization of location sensor
          * https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLLocationManager_Class/#//apple_ref/c/tdef/CLAuthorizationStatus
          */
-        [self saveAuthorizationStatus:[CLLocationManager authorizationStatus]];
+        
+        //[self saveAuthorizationStatus:[CLLocationManager authorizationStatus]];
         
         // Set a movement threshold for new events.
         locationManager.distanceFilter = accuracyMeter; // meter
@@ -130,7 +130,8 @@ NSString * const AWARE_PREFERENCES_MIN_GPS_ACCURACY = @"min_gps_accuracy";
 }
 
 
-- (BOOL)stopSensor{
+- (BOOL)stopCollecting
+{
     // Stop a sensing timer
     [locationTimer invalidate];
     locationTimer = nil;

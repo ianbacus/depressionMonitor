@@ -1,11 +1,10 @@
 //
 //  Screen.m
-//  AWARE
+//  Zhang Proj
 //
-//  Created by Yuuki Nishiyama on 12/14/15.
-//  Copyright © 2015 Yuuki NISHIYAMA. All rights reserved.
+//  Created by Ian Bacus on 12/20/16.
+//  Copyright © 2016 Ian Bacus. All rights reserved.
 //
-
 
 /**
  * I referenced following source code for detecting screen lock/unlock events. Thank you very much!

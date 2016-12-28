@@ -22,10 +22,16 @@
     }
     _sensorsArray = [NSArray arrayWithObjects: [Accelerometer alloc], [Locations alloc], [Screen alloc], [Calls alloc], [IOSActivityRecognition alloc], nil];
     
-    
     return self;
 }
 
+-(void) enableAll
+{
+    for (id sensor in _sensorsArray) {
+        // do something with object
+        [self enableSensor:sensor];
+    }
+}
 -(void) enableSensor:(Sensor *)sensor
 {
     
