@@ -1,13 +1,12 @@
 //
 //  IOSActivityRecognition.h
-//  AWARE
+//  Zhang Proj
 //
-//  Created by Yuuki Nishiyama on 9/19/16.
-//  Copyright © 2016 Yuuki NISHIYAMA. All rights reserved.
+//  Created by Ian Bacus on 12/20/16.
+//  Copyright © 2016 Ian Bacus. All rights reserved.
 //
 
 #import "Sensor.h"
-//#import "AWAREKeys.h"
 #import "IOSActivityRecognition.h"
 #import <CoreMotion/CoreMotion.h>
 

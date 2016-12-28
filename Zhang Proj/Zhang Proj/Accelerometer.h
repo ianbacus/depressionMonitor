@@ -1,9 +1,9 @@
 //
 //  Accelerometer.h
-//  AWARE
+//  Zhang Proj
 //
-//  Created by Yuuki Nishiyama on 11/19/15.
-//  Copyright © 2015 Yuuki NISHIYAMA. All rights reserved.
+//  Created by Ian Bacus on 12/20/16.
+//  Copyright © 2016 Ian Bacus. All rights reserved.
 //
 
 
