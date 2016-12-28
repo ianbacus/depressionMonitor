@@ -15,13 +15,14 @@
 
 @interface Sensor : NSObject
 {
-    
+    NSMutableDictionary * _dataTable;
 }
 
 @property NSString* name;
+@property BOOL isCollecting;
 
 -(instancetype) initSensor;
--(BOOL) initTable;
+-(NSDictionary*) flushData;
 -(BOOL) startCollecting;
 -(BOOL) stopCollecting;
 -(BOOL) getStatus;

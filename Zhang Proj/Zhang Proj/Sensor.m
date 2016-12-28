@@ -12,18 +12,30 @@
 
 @implementation Sensor
 
-@synthesize name = _name;
+//@synthesize dataTable = _dataTable;
+@synthesize isCollecting = _isCollecting;
 
--(instancetype) initSensor// :(NSString*)sensorName
+-(instancetype) initSensor
 {
     self = [super init];
-    //_name = sensorName;
+    if(self)
+    {
+        _dataTable = [[NSMutableDictionary alloc] init];
+    }
     return self;
 }
 
+-(NSDictionary *) flushData
+{
+    NSDictionary * retDict = [[NSDictionary alloc] initWithDictionary:_dataTable copyItems:YES];
+    _dataTable = nil;
+    return retDict;
+}
+
+
 -(BOOL) initTable
 {
- 
+    
     return YES;
 }
 
@@ -34,11 +46,13 @@
 
 -(BOOL) startCollecting
 {
+    _isCollecting = YES;
     return YES;
 }
 
 -(BOOL) stopCollecting
 {
+    _isCollecting = NO;
     return YES;
 }
 

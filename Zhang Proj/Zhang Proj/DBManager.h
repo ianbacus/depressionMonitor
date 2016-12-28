@@ -8,24 +8,15 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
+#import "SensorData.h"
+
 
 @interface DBManager : NSObject
 
+- (void) saveData:(NSDictionary*)data;
+- (instancetype)initWithStoreURL:(NSURL*)storeURL modelURL:(NSURL*)modelURL;
 
-/*
-@property (nonatomic, strong) NSMutableArray *arrColumnNames;
+@property (nonatomic,strong,readonly) NSManagedObjectContext* managedObjectContext;
 
-@property (nonatomic) int affectedRows;
-
-@property (nonatomic) long long lastInsertedRowID;
-
-
-
--(instancetype)initWithDatabaseFilename:(NSString *)dbFilename;
-
--(NSArray *)loadDataFromDB:(NSString *)query;
-
--(void)executeQuery:(NSString *)query;
-*/
 
 @end

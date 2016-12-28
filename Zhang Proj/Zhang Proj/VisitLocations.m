@@ -40,6 +40,7 @@
         locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters;
         locationManager.pausesLocationUpdatesAutomatically = NO;
         /*
+        CGFloat currentVersion = [[[UIDevice currentDevice] systemVersion] floatValue];
         if ([AWAREUtils getCurrentOSVersionAsFloat] >= 9.0) {
             //This variable is an important method for background sensing after iOS9
             locationManager.allowsBackgroundLocationUpdates = YES;

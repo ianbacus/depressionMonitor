@@ -9,10 +9,7 @@
 
 #import "Sensor.h"
 
-extern NSString * const AWARE_PREFERENCES_STATUS_SCREEN;
-
 @interface Screen : Sensor
 
-//- (BOOL) startSensor;
 
 @end

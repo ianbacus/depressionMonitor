@@ -21,8 +21,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     SensorManager *sensorMgr = [[SensorManager alloc] initSensorManager];
-    
-    [sensorMgr enableAll];
+    [sensorMgr startPeriodicCollectionWithInterval:180];
     //[sensorMgr initSensorManager]
     // Do any additional setup after loading the view, typically from a nib.
 }

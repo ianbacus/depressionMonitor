@@ -15,16 +15,11 @@
 
 @interface Locations : Sensor
 
-//- (BOOL) startSensorWithInterval:(double)interval;
-//- (BOOL) startSensorWithAccuracy:(double)accuracyMeter;
 
 - (BOOL) startSensorWithInterval:(double)interval accuracy:(double)accuracyMeter;
 - (void) saveLocation:(CLLocation *)location;
 
 //- (void) saveAuthorizationStatus:(CLAuthorizationStatus)status;
-
-
-
 
 @end
 

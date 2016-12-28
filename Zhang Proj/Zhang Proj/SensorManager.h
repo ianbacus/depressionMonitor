@@ -15,6 +15,7 @@
 #import "AmbientLight.h"
 #import "Locations.h"
 //#import "VisitLocation.h"
+#import "Camera.h"
 #import "Screen.h"
 #import "Calls.h"
 #import "IOSActivityRecognition.h"
@@ -32,13 +33,15 @@
 -(instancetype) initSensorManager;
 
 //Dynamically enable or disable sensors from viewcontroller
--(void) enableAll;
--(void) enableSensor :(Sensor*)sensor;
--(void) disableSensor :(Sensor*)sensor;
 
-//Sensors will post data whenever it is available
--(void) acceptDataFromSensor :(Sensor*)sensor :(NSData *)sensorData;
+-(void) acceptDataFromSensors;
+-(void) acceptDataFromSensor :(Sensor*)sensor;
 
+-(BOOL) startPeriodicCollectionWithInterval:(float)interval;
+-(BOOL) stopPeriodicCollection;
+
+@property NSTimer* dataCollectionTimer;
+@property DBManager* databaseMgr;
 
 @end
 

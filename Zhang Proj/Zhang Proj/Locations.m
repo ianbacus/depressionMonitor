@@ -6,13 +6,13 @@
 //  Copyright © 2016 Ian Bacus. All rights reserved.
 //
 
+/**
+ * Check an authorization of location sensor
+ * https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLLocationManager_Class/#//apple_ref/c/tdef/CLAuthorizationStatus
+ */
+
 #import "Locations.h"
 #import "AppDelegate.h"
-
-NSString * const AWARE_PREFERENCES_STATUS_LOCATION_GPS = @"status_location_gps";
-NSString * const AWARE_PREFERENCES_FREQUENCY_GPS = @"frequency_gps";
-NSString * const AWARE_PREFERENCES_MIN_GPS_ACCURACY = @"min_gps_accuracy";
-
 
 
 @implementation Locations{
@@ -26,32 +26,16 @@ NSString * const AWARE_PREFERENCES_MIN_GPS_ACCURACY = @"min_gps_accuracy";
 - (instancetype)init
 {
     if (self) {
-        defaultInterval = 180; // 180sec(=3min)
-        defaultAccuracy = 250; // 250m
+        //defaultInterval = 180; // seconds
+        defaultInterval = -1; // only on updates to location
+        defaultAccuracy = 50; // meters
     }
     return self;
 }
 
 -(BOOL)startCollecting
 {
-    
-    // Get a sensing frequency from settings
-    double interval = defaultInterval;
-    double frequency = 1;//[self getSensorSetting:settings withKey:@"frequency_gps"];
-    if(frequency != -1){
-        NSLog(@"Sensing requency is %f ", frequency);
-        interval = frequency;
-    }
-    
-    // Get a min gps accuracy from settings
-    double minAccuracy = 1;//[self getSensorSetting:settings withKey:@"min_gps_accuracy"];
-    if ( minAccuracy > 0 ) {
-        NSLog(@"Mini GSP accuracy is %f", minAccuracy);
-    } else {
-        minAccuracy = defaultAccuracy;
-    }
-    [self startSensorWithInterval:0 accuracy:minAccuracy];
-    
+    [self startSensorWithInterval:defaultInterval accuracy:defaultAccuracy];
     return YES;
     
 }
@@ -59,9 +43,7 @@ NSString * const AWARE_PREFERENCES_MIN_GPS_ACCURACY = @"min_gps_accuracy";
 - (BOOL)startSensorWithInterval:(double)interval accuracy:(double)accuracyMeter
 {
     // Set and start a location sensor with the senseing frequency and min GPS accuracy
-    //NSLog(@"[%@] Start Location Sensor!", [self getSensorName]);
-    
-    if (nil == locationManager){
+    if (locationManager == nil){
         locationManager = [[CLLocationManager alloc] init];
         locationManager.delegate = self;
         
@@ -75,19 +57,13 @@ NSString * const AWARE_PREFERENCES_MIN_GPS_ACCURACY = @"min_gps_accuracy";
             locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters;
         } else if (accuracyMeter <= 1000){
             locationManager.desiredAccuracy = kCLLocationAccuracyKilometer;
-        } else if (accuracyMeter <= 3000){
-            locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers;
         } else {
             locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers;
         }
-
-        
         locationManager.pausesLocationUpdatesAutomatically = NO;
         
         CGFloat currentVersion = [[[UIDevice currentDevice] systemVersion] floatValue];
-        NSLog(@"OS:%f", currentVersion);
         if (currentVersion >= 9.0) {
-            //This variable is an important method for background sensing after iOS9
             locationManager.allowsBackgroundLocationUpdates = YES;
         }
         
@@ -95,36 +71,24 @@ NSString * const AWARE_PREFERENCES_MIN_GPS_ACCURACY = @"min_gps_accuracy";
             [locationManager requestAlwaysAuthorization];
         }
         
-        /**
-         * Check an authorization of location sensor
-         * https://developer.apple.com/library/ios/documentation/CoreLocation/Reference/CLLocationManager_Class/#//apple_ref/c/tdef/CLAuthorizationStatus
-         */
-        
-        //[self saveAuthorizationStatus:[CLLocationManager authorizationStatus]];
         
         // Set a movement threshold for new events.
         locationManager.distanceFilter = accuracyMeter; // meter
-        // locationManager.activityType = CLActivityTypeFitness;
         
-        // Start Monitoring
         [locationManager startMonitoringSignificantLocationChanges];
-        // [locationManager startUpdatingLocation];
-        // [locationManager startUpdatingHeading];
-        // [_locationManager startMonitoringVisits];
+        //[self saveAuthorizationStatus:[CLLocationManager authorizationStatus]];
         
         [self getGpsData:nil];
         
+        //sampled vs on update
         if(interval > 0){
-            locationTimer = [NSTimer scheduledTimerWithTimeInterval:interval
-                                                             target:self
-                                                           selector:@selector(getGpsData:)
-                                                           userInfo:nil
-                                                            repeats:YES];
+            locationTimer = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(getGpsData:) userInfo:nil repeats:YES];
             [self getGpsData:nil];
-        }else{
+        }
+        else
+        {
             [locationManager startUpdatingLocation];
         }
-        
     }
     return YES;
 }
@@ -149,18 +113,31 @@ NSString * const AWARE_PREFERENCES_MIN_GPS_ACCURACY = @"min_gps_accuracy";
 ///////////////////////////////////////////////////////////////////////////////////
 
 
-- (void) getGpsData: (NSTimer *) theTimer {
-    //[sdManager addLocation:[_locationManager location]];
+- (void) getGpsData: (NSTimer *) theTimer
+{
     CLLocation* location = [locationManager location];
     [self saveLocation:location];
 }
 
 - (void) locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray<CLLocation *> *)locations{
-    for (CLLocation* location in locations) {
+    for (CLLocation* location in locations)
+    {
         [self saveLocation:location];
     }
 }
 
+- (void) saveLocation:(CLLocation *)location
+{
+
+    NSString * latitude = [[NSNumber numberWithDouble:location.coordinate.latitude] stringValue];
+    NSString * longitude = [[NSNumber numberWithDouble:location.coordinate.longitude] stringValue];
+    double acc = ((location.verticalAccuracy + location.horizontalAccuracy) / 2);
+    NSString * accuracy = [[NSNumber numberWithDouble:acc] stringValue];
+    NSString *locationStr = [@[latitude, longitude, accuracy] componentsJoinedByString:@","];
+    [_dataTable setObject:locationStr forKey:[NSDate new]];
+}
+
+/*
 - (void) saveLocation:(CLLocation *)location{
 
     double accuracy = (location.verticalAccuracy + location.horizontalAccuracy) / 2;
@@ -183,7 +160,7 @@ NSString * const AWARE_PREFERENCES_MIN_GPS_ACCURACY = @"min_gps_accuracy";
     
 }
 
-/*
+
 - (void)insertNewEntit25yWithData:(NSDictionary *)data
            managedObjectContext:(NSManagedObjectContext *)childContext
                      entityName:(NSString *)entity{
@@ -205,7 +182,7 @@ NSString * const AWARE_PREFERENCES_MIN_GPS_ACCURACY = @"min_gps_accuracy";
     
 }
 
-*/
+
 - (void)saveDummyData{
     [self getGpsData:nil];
 }
@@ -221,7 +198,7 @@ NSString * const AWARE_PREFERENCES_MIN_GPS_ACCURACY = @"min_gps_accuracy";
 //}
 
 
-
+*/
 
 
 @end
