@@ -23,61 +23,71 @@
 }
 
 
-- (instancetype)init
+- (instancetype)initSensor
 {
     if (self) {
-        //defaultInterval = 180; // seconds
-        defaultInterval = -1; // only on updates to location
-        defaultAccuracy = 50; // meters
+        self._name = @"Location";
+        //self.dataTable = [[NSMutableDictionary alloc] init];
+        defaultInterval = 10; // seconds
+        //defaultInterval = -1; // only on updates to location
+        defaultAccuracy = 1; // meters
+        self.dataTable = [[NSMutableDictionary alloc] init];
+        if (locationManager == nil){
+            locationManager = [[CLLocationManager alloc] init];
+            locationManager.delegate = self;
+            locationManager.pausesLocationUpdatesAutomatically = NO;
+            
+            CGFloat currentVersion = [[[UIDevice currentDevice] systemVersion] floatValue];
+            if (currentVersion >= 9.0)
+            {
+                locationManager.allowsBackgroundLocationUpdates = YES;
+            }
+            if ([locationManager respondsToSelector:@selector(requestAlwaysAuthorization)])
+            {
+                [locationManager requestAlwaysAuthorization];
+            }
+            //[self saveAuthorizationStatus:[CLLocationManager authorizationStatus]];
+        }
     }
     return self;
 }
 
 -(BOOL)startCollecting
 {
+    [super startCollecting];
     [self startSensorWithInterval:defaultInterval accuracy:defaultAccuracy];
     return YES;
     
 }
 
+-(BOOL) setAccuracy:(double)accuracyMeter
+{
+    if (accuracyMeter == 0) {
+        locationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation;
+    } else if (accuracyMeter <= 5){
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest;
+    } else if (accuracyMeter <= 25 ){
+        locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters;
+    } else if (accuracyMeter <= 100 ){
+        locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters;
+    } else if (accuracyMeter <= 1000){
+        locationManager.desiredAccuracy = kCLLocationAccuracyKilometer;
+    } else {
+        locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers;
+    }
+    
+    // Set a movement threshold for new events.
+    locationManager.distanceFilter = accuracyMeter; // meter
+    return YES;
+}
+
 - (BOOL)startSensorWithInterval:(double)interval accuracy:(double)accuracyMeter
 {
     // Set and start a location sensor with the senseing frequency and min GPS accuracy
-    if (locationManager == nil){
-        locationManager = [[CLLocationManager alloc] init];
-        locationManager.delegate = self;
-        
-        if (accuracyMeter == 0) {
-            locationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation;
-        } else if (accuracyMeter <= 5){
-            locationManager.desiredAccuracy = kCLLocationAccuracyBest;
-        } else if (accuracyMeter <= 25 ){
-            locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters;
-        } else if (accuracyMeter <= 100 ){
-            locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters;
-        } else if (accuracyMeter <= 1000){
-            locationManager.desiredAccuracy = kCLLocationAccuracyKilometer;
-        } else {
-            locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers;
-        }
-        locationManager.pausesLocationUpdatesAutomatically = NO;
-        
-        CGFloat currentVersion = [[[UIDevice currentDevice] systemVersion] floatValue];
-        if (currentVersion >= 9.0) {
-            locationManager.allowsBackgroundLocationUpdates = YES;
-        }
-        
-        if ([locationManager respondsToSelector:@selector(requestAlwaysAuthorization)]) {
-            [locationManager requestAlwaysAuthorization];
-        }
-        
-        
-        // Set a movement threshold for new events.
-        locationManager.distanceFilter = accuracyMeter; // meter
-        
+    if(locationManager)
+    {
+        [self setAccuracy:accuracyMeter];
         [locationManager startMonitoringSignificantLocationChanges];
-        //[self saveAuthorizationStatus:[CLLocationManager authorizationStatus]];
-        
         [self getGpsData:nil];
         
         //sampled vs on update
@@ -96,6 +106,7 @@
 
 - (BOOL)stopCollecting
 {
+    [super stopCollecting];
     // Stop a sensing timer
     [locationTimer invalidate];
     locationTimer = nil;
@@ -129,12 +140,13 @@
 - (void) saveLocation:(CLLocation *)location
 {
 
-    NSString * latitude = [[NSNumber numberWithDouble:location.coordinate.latitude] stringValue];
-    NSString * longitude = [[NSNumber numberWithDouble:location.coordinate.longitude] stringValue];
+    NSString * latitude = [NSString stringWithFormat:@"%.02f", location.coordinate.latitude];
+    NSString * longitude = [NSString stringWithFormat:@"%.02f", location.coordinate.longitude];
+    //NSString * longitude = [[NSNumber numberWithDouble:location.coordinate.longitude] stringValue];
     double acc = ((location.verticalAccuracy + location.horizontalAccuracy) / 2);
     NSString * accuracy = [[NSNumber numberWithDouble:acc] stringValue];
     NSString *locationStr = [@[latitude, longitude, accuracy] componentsJoinedByString:@","];
-    [_dataTable setObject:locationStr forKey:[NSDate new]];
+    [self.dataTable setObject:locationStr forKey:[NSDate date]];
 }
 
 /*

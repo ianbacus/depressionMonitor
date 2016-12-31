@@ -9,8 +9,6 @@
 #import "Screen.h"
 #import "notify.h"
 
-NSString * const AWARE_PREFERENCES_STATUS_SCREEN  = @"status_screen";
-
 @implementation Screen {
     int _notifyTokenForDidChangeLockStatus;
     int _notifyTokenForDidChangeDisplayStatus;
@@ -20,6 +18,9 @@ NSString * const AWARE_PREFERENCES_STATUS_SCREEN  = @"status_screen";
 {
     self = [super init];
     if (self) {
+        self._name = @"Screen";
+        self.dataTable = [[NSMutableDictionary alloc] init];
+        //assert(super.dataTable
     }
     return self;
 }
@@ -63,7 +64,6 @@ NSString * const AWARE_PREFERENCES_STATUS_SCREEN  = @"status_screen";
 /////////////////////////////////////////////////////////////////////////////////////
 
 
-
 -(void)registerAppforDetectLockState {
     notify_register_dispatch("com.apple.springboard.lockstate", &_notifyTokenForDidChangeLockStatus,dispatch_get_main_queue(), ^(int token) {
         
@@ -75,15 +75,17 @@ NSString * const AWARE_PREFERENCES_STATUS_SCREEN  = @"status_screen";
         if(state == 0)
         {
             //3?
+            NSLog(@"screen unlocked");
             screenStr = @"Unlocked";
             //[[NSNotificationCenter defaultCenter] postNotificationName:ACTION_AWARE_SCREEN_UNLOCKED object:nil userInfo:nil];
         }
         else {
             //2?
+            NSLog(@"screen locked");
             screenStr = @"Locked";
         }
         
-        [_dataTable setObject:screenStr forKey:[NSDate new]];
+        [self.dataTable setObject:screenStr forKey:[NSDate date]];
 
     });
 }
@@ -107,7 +109,9 @@ NSString * const AWARE_PREFERENCES_STATUS_SCREEN  = @"status_screen";
             screenStr = @"On";
             //[[NSNotificationCenter defaultCenter] postNotificationName:ACTION_AWARE_SCREEN_ON object:nil userInfo:nil];
         }
-        [_dataTable setObject:screenStr forKey:[NSDate new]];
+        
+        [self.dataTable setObject:screenStr forKey:[NSDate date]];
+        
     });
 }
 

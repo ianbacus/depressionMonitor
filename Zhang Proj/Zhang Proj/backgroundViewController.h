@@ -8,6 +8,8 @@
 
 
 #import <UIKit/UIKit.h>
+#import "SensorManager.h"
+#import "AppDelegate.h"
 
 @interface BackgroundViewController : UIViewController
 {

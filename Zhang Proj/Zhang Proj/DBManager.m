@@ -7,9 +7,11 @@
 //
 
 #import "DBManager.h"
+#import "AppDelegate.h"
 
 @interface DBManager ()
 
+@property (nonatomic) NSManagedObjectModel* managedObjectModel;
 @property (nonatomic,strong,readwrite) NSManagedObjectContext* managedObjectContext;
 @property (nonatomic,strong) NSURL* modelURL;
 @property (nonatomic,strong) NSURL* storeURL;
@@ -22,32 +24,67 @@
 {
     self = [super init];
     if (self) {
-        self.storeURL = storeURL;
-        self.modelURL = modelURL;
-        [self setupManagedObjectContext];
+        _storeURL = storeURL;
+        _modelURL = modelURL;
+        //_managedObjectModel = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
+        //[self setupManagedObjectContext];
     }
     return self;
 }
 
+- (instancetype)initWithModel:(NSManagedObjectModel*)model andContext:(NSManagedObjectContext*)context
+{
+    self = [super init];
+    if (self) {
+        _managedObjectModel = model;
+        _managedObjectContext = context;
+    }
+    return self;
+}
 
--(void) saveData:(NSDictionary*)data
+- (NSArray *) getDataForSensor:(NSString *)sensorName
+{
+    NSEntityDescription *sensor = [NSEntityDescription entityForName:@"SensorDataEntity" inManagedObjectContext:_managedObjectContext];
+    NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
+    [fetchRequest setEntity:sensor];
+    [fetchRequest setPredicate:[NSPredicate predicateWithFormat:@"name == %@", sensorName]];
+
+    NSError *error = nil;
+    NSArray *results = [_managedObjectContext executeFetchRequest:fetchRequest error:&error];
+    if (results == nil) {
+        NSLog(@"Error fetching Sensor data: %@\n%@", [error localizedDescription], [error userInfo]);
+        abort();
+    }
+    
+    return results;
+    
+}
+
+
+-(void) saveData:(NSDictionary*)data forSensor:(NSString*)sensorName
 {
     //Initialize new row for MOC (Managed Object Context)
-    SensorData *sensorData = [NSEntityDescription insertNewObjectForEntityForName:@"me" inManagedObjectContext:[self managedObjectContext]];
+    SensorData *sensorData = [NSEntityDescription insertNewObjectForEntityForName:@"SensorDataEntity" inManagedObjectContext:_managedObjectContext];
     
     //Populate row
-    [sensorData setTime:[data valueForKey:@"time"]];
-    [sensorData setStateVal:[data valueForKey:@"stateVal"]];
-    [sensorData setName:[data valueForKey:@"name"]];
+    for(NSDate* timeIndex in data)
+    {
+        NSLog(@"%@ %@",sensorName,[data objectForKey:timeIndex]);
+        [sensorData setStateVal:[data objectForKey:timeIndex]];
+        [sensorData setName:sensorName];
+        [sensorData setTime:timeIndex];
+    }
     
     //Save the data to the database
     NSError *error = nil;
-    if ([[self managedObjectContext] save:&error] == NO) {
+    if ([_managedObjectContext save:&error] == NO)
+    {
         NSAssert(NO, @"Error saving context: %@\n%@", [error localizedDescription], [error userInfo]);
     }
-
+    
 }
 
+/*
 - (void)setupManagedObjectContext
 {
     self.managedObjectContext =
@@ -66,12 +103,13 @@
     }
     self.managedObjectContext.undoManager = [[NSUndoManager alloc] init];
 }
-
+*/
+/*
 - (NSManagedObjectModel*)managedObjectModel
 {
     return [[NSManagedObjectModel alloc] initWithContentsOfURL:self.modelURL];
 }
-
+*/
 /*
 - (void)initializeCoreData
 {

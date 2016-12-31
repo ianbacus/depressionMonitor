@@ -4,8 +4,32 @@
 
 - (IBAction)segmentChanged:(id)sender
 {
+    AppDelegate * app = (AppDelegate*) [[UIApplication sharedApplication] delegate];
+   
+    UISegmentedControl * seg = (UISegmentedControl *)sender;
+    //if (seg.selectedSegmentIndex == 0)
+    //NSString *option = [seg valueForKeyPath:@"Sensor"];
+    NSString *option = [seg valueForKey:@"Sensor"];
+    if([seg selectedSegmentIndex]==1)
+         [[app sensorManager] startPeriodicCollectionForSensor:option];
+    else
+        [[app sensorManager] stopPeriodicCollectionForSensor:option];
     
 }
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    NSLog(@"VC");
+    
+    //[sensorMgr initSensorManager]
+    // Do any additional setup after loading the view, typically from a nib.
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {

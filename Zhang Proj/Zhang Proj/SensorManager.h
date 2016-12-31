@@ -11,10 +11,7 @@
 
 //Sensors to be used
 
-#import "Accelerometer.h"
-#import "AmbientLight.h"
 #import "Locations.h"
-//#import "VisitLocation.h"
 #import "Camera.h"
 #import "Screen.h"
 #import "Calls.h"
@@ -26,11 +23,11 @@
 
 @interface SensorManager : NSObject 
 
-@property DBManager* dataStore;
+@property DBManager* dbManager;
 @property NSArray* sensorsArray;
 
 
--(instancetype) initSensorManager;
+-(instancetype) initSensorManagerWithDBManager:(DBManager*)dbManager;
 
 //Dynamically enable or disable sensors from viewcontroller
 
@@ -39,9 +36,12 @@
 
 -(BOOL) startPeriodicCollectionWithInterval:(float)interval;
 -(BOOL) stopPeriodicCollection;
+-(BOOL) startPeriodicCollectionForSensor:(NSString*)sensorName;
+-(BOOL) stopPeriodicCollectionForSensor:(NSString*)sensorName;
+
 
 @property NSTimer* dataCollectionTimer;
-@property DBManager* databaseMgr;
+//@property DBManager* databaseMgr;
 
 @end
 

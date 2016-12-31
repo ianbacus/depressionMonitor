@@ -13,8 +13,11 @@
 
 @interface DBManager : NSObject
 
-- (void) saveData:(NSDictionary*)data;
+- (void) saveData:(NSDictionary*)data forSensor:(NSString*)sensorName;
+- (NSArray *) getDataForSensor :(NSString*)sensorName;
 - (instancetype)initWithStoreURL:(NSURL*)storeURL modelURL:(NSURL*)modelURL;
+- (instancetype)initWithModel:(NSManagedObjectModel*)model andContext:(NSManagedObjectContext*)context;
+
 
 @property (nonatomic,strong,readonly) NSManagedObjectContext* managedObjectContext;
 

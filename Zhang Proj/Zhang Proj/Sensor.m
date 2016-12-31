@@ -11,8 +11,6 @@
 
 
 @implementation Sensor
-
-//@synthesize dataTable = _dataTable;
 @synthesize isCollecting = _isCollecting;
 
 -(instancetype) initSensor
@@ -20,7 +18,10 @@
     self = [super init];
     if(self)
     {
-        _dataTable = [[NSMutableDictionary alloc] init];
+        //publicCounter = 5;
+        //_protectedCounter = 5;
+        //_dataTable = [[NSMutableDictionary alloc] init];
+        //assert(_dataTable);
     }
     return self;
 }
@@ -28,7 +29,7 @@
 -(NSDictionary *) flushData
 {
     NSDictionary * retDict = [[NSDictionary alloc] initWithDictionary:_dataTable copyItems:YES];
-    _dataTable = nil;
+    [_dataTable removeAllObjects];
     return retDict;
 }
 

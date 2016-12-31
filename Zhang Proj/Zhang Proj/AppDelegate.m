@@ -17,6 +17,11 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+    AppDelegate *app = self;
+    _dbManager = [[DBManager alloc] initWithModel:[app managedObjectModel] andContext:[app managedObjectContext]];
+    _sensorManager = [[SensorManager alloc] initSensorManagerWithDBManager:_dbManager];
+    [_sensorManager startPeriodicCollectionWithInterval:8];
+    
     return YES;
 }
 

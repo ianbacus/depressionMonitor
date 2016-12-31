@@ -18,7 +18,8 @@
 {
     self = [super init];
     if (self) {
-        
+        self.dataTable = [[NSMutableDictionary alloc] init];
+        self._name = @"Calls";
     }
     return self;
 }
@@ -63,9 +64,7 @@
         
         NSLog(@"Call Duration is %d seconds @ [%@]", duration, callTypeStr);
        
-        
-        
-        [_dataTable setObject:callTypeStr forKey:[NSDate new]];
+        [self.dataTable setObject:callTypeStr forKey:[NSDate date]];
         
     };
     return YES;

@@ -10,9 +10,7 @@
 
 @implementation IOSActivityRecognition {
     CMMotionActivityManager *motionActivityManager;
-    IOSActivityRecognitionMode sensingMode;
     CMMotionActivityConfidence confidenceFilter;
-    
 }
 
 -(instancetype) initSensor
@@ -20,15 +18,18 @@
     self = [super init];
     if(self)
     {
-        motionActivityManager = [[CMMotionActivityManager alloc] init];
-        sensingMode = IOSActivityRecognitionModeLive;
+        self.dataTable = [[NSMutableDictionary alloc] init];
+        self._name = @"Activity";
+        if([CMMotionActivityManager isActivityAvailable])
+            motionActivityManager = [[CMMotionActivityManager alloc] init];
         confidenceFilter = CMMotionActivityConfidenceLow;
     }
     return self;
 }
 
-- (BOOL) confidenceFilter :(CMMotionActivity *) motionActivity
+- (BOOL) performConfidenceFiltering :(CMMotionActivity *) motionActivity
 {
+    //Set minimum allowable accuracy
     switch (confidenceFilter) {
         case CMMotionActivityConfidenceHigh:
             if(motionActivity.confidence == CMMotionActivityConfidenceMedium ||
@@ -51,7 +52,7 @@
 
 - (void) addMotionActivity: (CMMotionActivity *) motionActivity{
     
-    if(!confidenceFilter) return;
+    if(![self performConfidenceFiltering:motionActivity]) return;
     //0: low confidence, 2: high confidence
     NSMutableString* activityStr = nil;
     switch(motionActivity.confidence)
@@ -81,7 +82,10 @@
         [activityStr appendString:@"Cycling"];
     
     if(activityStr != nil)
-        [_dataTable setObject:activityStr forKey:[NSDate new]];
+    {
+        [self.dataTable setObject:activityStr forKey:[NSDate date]];
+        NSLog(@"%@", activityStr);
+    }
     
 }
 
@@ -89,19 +93,26 @@
 -(BOOL) startCollecting
 {
     [super startCollecting];
-    if([CMMotionActivityManager isActivityAvailable]){
-        motionActivityManager = [CMMotionActivityManager new];
-        [motionActivityManager startActivityUpdatesToQueue:[NSOperationQueue new]
-           withHandler:^(CMMotionActivity *activity) {
-               dispatch_async(dispatch_get_main_queue(), ^{
-                   [self addMotionActivity:activity];
-               });
-           }];
-    }
-    else
+    /*
+    //motionActivityManager = [CMMotionActivityManager new];
+    [motionActivityManager startActivityUpdatesToQueue:[NSOperationQueue new]
+       withHandler:^(CMMotionActivity *activity) {
+           dispatch_async(dispatch_get_main_queue(), ^{
+               [self addMotionActivity:activity];
+           });
+       }];*/
+    
+    //
+    CMMotionActivityHandler motionActivityHandler = ^(CMMotionActivity *activity)
     {
-        return NO;
+         [self addMotionActivity:activity];
+    };
+    
+    if (motionActivityManager) {
+        [motionActivityManager startActivityUpdatesToQueue:[NSOperationQueue mainQueue] withHandler:motionActivityHandler];
     }
+    
+    
     return YES;
 }
 
