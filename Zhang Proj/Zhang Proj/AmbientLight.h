@@ -1,21 +1,18 @@
-#ifndef AmbientLight_h
-#define AmbientLight_h
+//
+//  IOSActivityRecognition.h
+//  Zhang Proj
+//
+//  Created by Ian Bacus on 12/20/16.
+//  Copyright © 2016 Ian Bacus. All rights reserved.
+//
+
+#import "Sensor.h"
+#import "UIKit/UIKit.h"
 
 
-//#import "Sensor.h"
 
-/*
 @interface AmbientLight : Sensor
 
-- (instancetype) init;
-- (int) startSensor;
-- (int) startSensorWithInterval:(double)interval;
-- (int) startSensorWithInterval:(double)interval bufferSize:(int)buffer;
-- (int) startSensorWithInterval:(double)interval bufferSize:(int)buffer fetchLimit:(int)fetchLimit;
-
+@property NSTimer* dataCollectionTimer;
 
 @end
- */
-
-
-#endif

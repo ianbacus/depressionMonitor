@@ -16,6 +16,8 @@
 #import "Screen.h"
 #import "Calls.h"
 #import "IOSActivityRecognition.h"
+#import "AmbientLight.h"
+#import "AmbientNoise.h"
 
 
 #ifndef SensorManager_h

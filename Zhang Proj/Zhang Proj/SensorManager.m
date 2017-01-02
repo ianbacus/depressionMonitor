@@ -36,6 +36,8 @@
                                                     [[Calls alloc] initSensor],                  //social
                                                     [[Locations alloc] initSensor],              //activity
                                                     [[Screen alloc] initSensor],                 //phone use
+                                                    [[AmbientLight alloc] initSensor],           //screen brightness
+                                                    [[AmbientNoise alloc] initSensor],           //ambient noise
                                                     //[[Camera alloc] initSensor],               //face scan
                                                     nil];
         
@@ -45,9 +47,9 @@
 
 - (BOOL) startPeriodicCollectionForSensor:(NSString*)sensorName
 {
-    for(id sensor in _sensorsArray)
+    for(Sensor* sensor in _sensorsArray)
     {
-        if([sensor name] == sensorName){
+        if([sensor _name] == sensorName){
             [sensor startCollecting];
         }
     }
@@ -56,9 +58,9 @@
 
 - (BOOL) stopPeriodicCollectionForSensor:(NSString*)sensorName
 {
-    for(id sensor in _sensorsArray)
+    for(Sensor* sensor in _sensorsArray)
     {
-        if([sensor name] == sensorName){
+        if([sensor _name] == sensorName){
            [sensor stopCollecting];
         }
     }
@@ -70,10 +72,6 @@
     //Make all sensors begin collecting data. On specified interval, flush the data of each sensor into the database
     
     _dataCollectionTimer = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(acceptDataFromSensors) userInfo:nil repeats:YES];
-    //[[_sensorsArray objectAtIndex:0] startCollecting];
-    //[[_sensorsArray objectAtIndex:1] startCollecting];
-    //[[_sensorsArray objectAtIndex:2] startCollecting];
-    //[[_sensorsArray objectAtIndex:3] startCollecting];
     for (id sensor in _sensorsArray) { [sensor startCollecting]; }
     return YES;
 }
@@ -92,11 +90,42 @@
 
 -(void) acceptDataFromSensors
 {
-    for (id sensor in _sensorsArray) {
+    for (Sensor* sensor in _sensorsArray) {
         if([sensor isCollecting])
             [self acceptDataFromSensor:sensor];
     }
 }
+
+-(void) uploadSensorData:(NSURL*)dbServer
+{
+    for (Sensor* sensor in _sensorsArray) {
+        NSArray* data = [_dbManager getDataForSensor:sensor];
+        
+    }
+}
+-(void)postData:(NSArray*)data toURL:(NSURL*)dbServer
+{
+    //Delete SQLite contents for the day, convert them to a single piece of data
+    NSString *post = [NSString stringWithFormat:@"Username=%@&Password=%@",@"username",@"password"];
+    NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+    NSString *postLength = [NSString stringWithFormat:@"%lu",(unsigned long)[postData length]];
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+    [request setURL:dbServer];
+    
+    [request setHTTPMethod:@"POST"];
+    [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+    [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+    [request setHTTPBody:postData];
+    NSURLConnection *conn = [[NSURLConnection alloc] initWithRequest:request delegate:self];
+    if(conn) {
+        NSLog(@"Connection Successful");
+    } else {
+        NSLog(@"Connection could not be made");
+    }
+    
+}
+
+
 -(void) acceptDataFromSensor:(Sensor *)sensor
 {
     [_dbManager saveData:[sensor flushData]
