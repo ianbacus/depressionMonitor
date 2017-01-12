@@ -68,24 +68,25 @@
             activityStr = [NSMutableString stringWithString:@"Probably "];
             break;
     }
-    
+    NSLog(@"%@",motionActivity);
     if (motionActivity.unknown)
         [activityStr appendString:@"Unknown"];
-    if (motionActivity.stationary)
+    else if (motionActivity.stationary)
         [activityStr appendString:@"Stationary"];
-    if (motionActivity.running)
+    else if (motionActivity.running)
         [activityStr appendString:@"Running"];
-    if (motionActivity.walking)
+    else if (motionActivity.walking)
         [activityStr appendString:@"Walking"];
-    if (motionActivity.automotive)
+    else if (motionActivity.automotive)
         [activityStr appendString:@"Driving"];
-    if (motionActivity.cycling)
+    else if (motionActivity.cycling)
         [activityStr appendString:@"Cycling"];
+    else
+        activityStr = nil;
     
     if(activityStr != nil)
     {
-        [self.dataTable setObject:activityStr forKey:[NSDate date]];
-        NSLog(@"%@", activityStr);
+        [self saveData:activityStr];
     }
     
 }
@@ -121,7 +122,7 @@
 {
     [super stopCollecting];
     [motionActivityManager stopActivityUpdates];
-    motionActivityManager = nil;
+    //motionActivityManager = nil;
     return YES;
 }
 

@@ -27,23 +27,21 @@
 
 @property DBManager* dbManager;
 @property NSArray* sensorsArray;
-
+@property NSTimer* dataCollectionTimer;
+@property NSTimer* dailyUpdateTimer;
+@property (strong, nonatomic) CLLocationManager *sharedLocationManager; //for background hack
 
 -(instancetype) initSensorManagerWithDBManager:(DBManager*)dbManager;
 
-//Dynamically enable or disable sensors from viewcontroller
-
 -(void) acceptDataFromSensors;
 -(void) acceptDataFromSensor :(Sensor*)sensor;
+-(void) uploadSensorData:(NSURL*)dbServer;
 
 -(BOOL) startPeriodicCollectionWithInterval:(float)interval;
 -(BOOL) stopPeriodicCollection;
 -(BOOL) startPeriodicCollectionForSensor:(NSString*)sensorName;
 -(BOOL) stopPeriodicCollectionForSensor:(NSString*)sensorName;
 
-
-@property NSTimer* dataCollectionTimer;
-//@property DBManager* databaseMgr;
 
 @end
 

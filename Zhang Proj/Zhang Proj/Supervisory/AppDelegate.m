@@ -14,13 +14,18 @@
 
 @implementation AppDelegate
 
-
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+    [application setMinimumBackgroundFetchInterval:UIApplicationBackgroundFetchIntervalMinimum];
+    
     AppDelegate *app = self;
-    _dbManager = [[DBManager alloc] initWithModel:[app managedObjectModel] andContext:[app managedObjectContext]];
+    _dbManager = [[DBManager alloc] initWithModel:[app managedObjectModel] coordinator:[app persistentStoreCoordinator] andContext:[app managedObjectContext]];
     _sensorManager = [[SensorManager alloc] initSensorManagerWithDBManager:_dbManager];
+    assert(_sensorManager);
     [_sensorManager startPeriodicCollectionWithInterval:8];
+    
+    
+    NSLog(@"Starting app");
     
     return YES;
 }
@@ -31,8 +36,10 @@
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application {
-    // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
-    // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+// Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
+// If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+   
+    
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {

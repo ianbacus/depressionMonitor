@@ -34,6 +34,7 @@
 	<string>Detect user's emotional state from physical activity </string>
 	<key>UIBackgroundModes</key>
 	<array>
+		<string>audio</string>
 		<string>external-accessory</string>
 		<string>fetch</string>
 		<string>location</string>

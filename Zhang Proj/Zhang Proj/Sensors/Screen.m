@@ -20,7 +20,6 @@
     if (self) {
         self._name = @"Screen";
         self.dataTable = [[NSMutableDictionary alloc] init];
-        //assert(super.dataTable
     }
     return self;
 }
@@ -52,20 +51,14 @@
     return YES;
 }
 
--(BOOL) getStatus
-{
-    return YES;
-}
-
-
-
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
 
-
+//dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0l),
+//dispatch_get_main_queue()
 -(void)registerAppforDetectLockState {
-    notify_register_dispatch("com.apple.springboard.lockstate", &_notifyTokenForDidChangeLockStatus,dispatch_get_main_queue(), ^(int token) {
+    notify_register_dispatch("com.apple.springboard.lockcomplete", &_notifyTokenForDidChangeLockStatus,dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0l), ^(int token) {
         
         uint64_t state = UINT64_MAX;
         notify_get_state(token, &state);
@@ -74,24 +67,21 @@
         
         if(state == 0)
         {
-            //3?
-            NSLog(@"screen unlocked");
             screenStr = @"Unlocked";
-            //[[NSNotificationCenter defaultCenter] postNotificationName:ACTION_AWARE_SCREEN_UNLOCKED object:nil userInfo:nil];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"ZP_SCREEN_UNLOCKED" object:nil userInfo:nil];
         }
         else {
-            //2?
-            NSLog(@"screen locked");
             screenStr = @"Locked";
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"ZP_SCREEN_UNLOCKED" object:nil userInfo:nil];
         }
         
-        [self.dataTable setObject:screenStr forKey:[NSDate date]];
+        [self saveData:screenStr];
 
     });
 }
 
 - (void) registerAppforDetectDisplayStatus {
-    notify_register_dispatch("com.apple.iokit.hid.displayStatus", &_notifyTokenForDidChangeDisplayStatus,dispatch_get_main_queue(), ^(int token) {
+    notify_register_dispatch("com.apple.iokit.hid.displayStatus", &_notifyTokenForDidChangeDisplayStatus,dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0l), ^(int token) {
         
         uint64_t state = UINT64_MAX;
         notify_get_state(token, &state);
@@ -99,18 +89,16 @@
         
         if(state == 0)
         {
-            NSLog(@"screen off");
             screenStr = @"Off";
-            //[[NSNotificationCenter defaultCenter] postNotificationName:ACTION_AWARE_SCREEN_OFF object:nil userInfo:nil];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"ZP_AWARE_SCREEN_OFF" object:nil userInfo:nil];
         }
         else
         {
-            NSLog(@"screen on");
             screenStr = @"On";
-            //[[NSNotificationCenter defaultCenter] postNotificationName:ACTION_AWARE_SCREEN_ON object:nil userInfo:nil];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"ZP_AWARE_SCREEN_ON" object:nil userInfo:nil];
         }
         
-        [self.dataTable setObject:screenStr forKey:[NSDate date]];
+        [self saveData:screenStr];
         
     });
 }

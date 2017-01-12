@@ -17,6 +17,7 @@
 }
 
 - (IBAction)segmentChanged:(id)sender;
+- (IBAction) uploadData:(id)sender;
 
 @end
 

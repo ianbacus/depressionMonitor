@@ -11,6 +11,8 @@
 
 
 @implementation Sensor
+
+
 @synthesize isCollecting = _isCollecting;
 
 -(instancetype) initSensor
@@ -18,10 +20,7 @@
     self = [super init];
     if(self)
     {
-        //publicCounter = 5;
-        //_protectedCounter = 5;
-        //_dataTable = [[NSMutableDictionary alloc] init];
-        //assert(_dataTable);
+        
     }
     return self;
 }
@@ -47,14 +46,22 @@
 
 -(BOOL) startCollecting
 {
+    NSLog(@"%@: Started collecting",self._name);
     _isCollecting = YES;
     return YES;
 }
 
 -(BOOL) stopCollecting
 {
+    NSLog(@"%@: Stopped collecting",self._name);
     _isCollecting = NO;
     return YES;
+}
+
+-(void) saveData:(NSString *)dataStr
+{
+    NSLog(@"%@: %@",self._name, dataStr);
+    [self.dataTable setObject:dataStr forKey:[[NSDate alloc] init]];
 }
 
 

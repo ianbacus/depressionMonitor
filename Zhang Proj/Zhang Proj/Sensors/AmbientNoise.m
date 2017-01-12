@@ -7,6 +7,12 @@
 //
 
 
+// Decibel Calculation.
+// https://github.com/syedhali/EZAudio/issues/50
+
+
+
+
 #import "AmbientNoise.h"
 #import "AudioAnalysis.h"
 #import "AppDelegate.h"
@@ -40,10 +46,10 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
     if(self)
     {
         self.dataTable = [[NSMutableDictionary alloc] init];
-        self._name = @"Calls";
+        self._name = @"AmbientNoise";
         frequencyMin = 5;
         sampleSize = 30;
-        silenceThreshold = 50;
+        silenceThreshold = 10;
         
         recordingSampleRate = 44100;
         targetSampleRate = 8000;
@@ -66,7 +72,7 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
 
 -(BOOL) startCollecting
 {
-    
+    [super startCollecting];
     /*
     if(saveRawData){
         [self setFetchLimit:10];
@@ -91,14 +97,14 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
 
 -(BOOL) stopCollecting
 {
+    [super stopCollecting];
+    [timer invalidate];
+    timer = nil;
     return YES;
 }
 
 -(void)setupMicrophone {
-    //
-    // Setup the AVAudioSession. EZMicrophone will not work properly on iOS
-    // if you don't do this!
-    //
+    // Setup the AVAudioSession.
     AVAudioSession *session = [AVAudioSession sharedInstance];
     NSError *error;
     [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionInterruptSpokenAudioAndMixWithOthers|
@@ -118,9 +124,6 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
 }
 
 
-/**
- * Start recording ambient noise
- */
 - (void) startRecording:(id)sender{
     if (self.microphone == nil) {
         [self setupMicrophone];
@@ -152,9 +155,6 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
 }
 
 
-/**
- * Stop recording ambient noise
- */
 - (void) stopRecording:(id)sender{
     dispatch_async(dispatch_get_main_queue(), ^{
         
@@ -203,10 +203,11 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
     {
         dataString = [NSString stringWithFormat:@"dB:%f, RMS:%f, Frequency:%f", db, rms, maxFrequency];
     }
-    NSLog(@"%@",dataString);
+    [self saveData:dataString];
     //if(saveRawData) { NSData * data = [NSData dataWithContentsOfURL:[self testFilePathURLWithNumber:number]]; }
- 
 }
+
+
 
 ///////////////////////////////////////////////
 //////////////////////////////////////////////
@@ -271,8 +272,6 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
          bufferSize:(vDSP_Length)bufferSize
 {
     maxFrequency = [fft maxFrequency];
-    //    NSLog(@"%f", maxFrequency);
-    //    [self setLatestValue:[NSString stringWithFormat:@"dB:%f, RMS:%f, Frequency:%f", db, rms, maxFrequency]];
 }
 
 
@@ -280,7 +279,7 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
       hasAudioReceived:(float **)buffer
         withBufferSize:(UInt32)bufferSize
   withNumberOfChannels:(UInt32)numberOfChannels{
-    __weak typeof (self) weakSelf = self;
+    //__weak typeof (self) weakSelf = self;
     // Getting audio data as an array of float buffer arrays that can be fed into the
     // EZAudioPlot, EZAudioPlotGL, or whatever visualization you would like to do with
     // the microphone data.
@@ -292,15 +291,8 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
     
     //
     // Calculate the RMS with buffer and bufferSize
-    // NOTE: 1000
-    //
     rms = [EZAudioUtilities RMS:*buffer length:bufferSize] * 1000;
-    // NSLog(@"%f", rms);
     
-    //
-    // Decibel Calculation.
-    // https://github.com/syedhali/EZAudio/issues/50
-    //
     float one       = 1.0;
     float meanVal = 0.0;
     float tiny = 0.1;

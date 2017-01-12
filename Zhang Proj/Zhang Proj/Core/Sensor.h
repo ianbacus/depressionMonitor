@@ -14,12 +14,8 @@
 
 
 @interface Sensor : NSObject
-{
-    //NSMutableDictionary * _dataTable;
-    int publicCounter;
-}
 
-@property int protectedCounter;
+@property NSDateFormatter* timeFormat;
 @property NSString* _name;
 @property NSMutableDictionary *dataTable;
 @property BOOL isCollecting;
@@ -29,6 +25,7 @@
 -(BOOL) startCollecting;
 -(BOOL) stopCollecting;
 -(BOOL) getStatus;
+-(void) saveData:(NSString *)dataStr;
 
 @end
 

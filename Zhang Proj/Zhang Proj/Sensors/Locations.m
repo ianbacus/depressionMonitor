@@ -25,8 +25,9 @@
 
 - (instancetype)initSensor
 {
+    self = [super init];
     if (self) {
-        self._name = @"Location";
+        self._name = @"Locations";
         //self.dataTable = [[NSMutableDictionary alloc] init];
         defaultInterval = 10; // seconds
         //defaultInterval = -1; // only on updates to location
@@ -58,6 +59,22 @@
     [self startSensorWithInterval:defaultInterval accuracy:defaultAccuracy];
     return YES;
     
+}
+
+
+- (BOOL)stopCollecting
+{
+    [super stopCollecting];
+    // Stop a sensing timer
+    [locationTimer invalidate];
+    locationTimer = nil;
+    
+    // Stop location sensors
+    [locationManager stopUpdatingHeading];
+    [locationManager stopUpdatingLocation];
+    //locationManager = nil;
+    
+    return YES;
 }
 
 -(BOOL) setAccuracy:(double)accuracyMeter
@@ -104,21 +121,6 @@
 }
 
 
-- (BOOL)stopCollecting
-{
-    [super stopCollecting];
-    // Stop a sensing timer
-    [locationTimer invalidate];
-    locationTimer = nil;
-    
-    // Stop location sensors
-    [locationManager stopUpdatingHeading];
-    [locationManager stopUpdatingLocation];
-    locationManager = nil;
-    
-    return YES;
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
@@ -127,7 +129,8 @@
 - (void) getGpsData: (NSTimer *) theTimer
 {
     CLLocation* location = [locationManager location];
-    [self saveLocation:location];
+    if(location != nil)
+        [self saveLocation:location];
 }
 
 - (void) locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray<CLLocation *> *)locations{
@@ -146,71 +149,7 @@
     double acc = ((location.verticalAccuracy + location.horizontalAccuracy) / 2);
     NSString * accuracy = [[NSNumber numberWithDouble:acc] stringValue];
     NSString *locationStr = [@[latitude, longitude, accuracy] componentsJoinedByString:@","];
-    [self.dataTable setObject:locationStr forKey:[NSDate date]];
+    [self saveData:locationStr];
 }
-
-/*
-- (void) saveLocation:(CLLocation *)location{
-
-    double accuracy = (location.verticalAccuracy + location.horizontalAccuracy) / 2;
-    
-    //NSNumber * unixtime = [AWAREUtils getUnixTimestamp:[NSDate new]];
-    NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-    //[dict setObject:unixtime forKey:@"timestamp"];
-    //[dict setObject:[self getDeviceId] forKey:@"device_id"];
-    [dict setObject:[NSNumber numberWithDouble:location.coordinate.latitude] forKey:@"double_latitude"];
-    [dict setObject:[NSNumber numberWithDouble:location.coordinate.longitude] forKey:@"double_longitude"];
-    [dict setObject:[NSNumber numberWithDouble:location.course] forKey:@"double_bearing"];
-    [dict setObject:[NSNumber numberWithDouble:location.speed] forKey:@"double_speed"];
-    [dict setObject:[NSNumber numberWithDouble:location.altitude] forKey:@"double_altitude"];
-    [dict setObject:@"gps" forKey:@"provider"];
-    [dict setObject:@(accuracy) forKey:@"accuracy"];
-    [dict setObject:@"" forKey:@"label"];
-    //[self setLatestValue:[NSString stringWithFormat:@"%f, %f, %f", location.coordinate.latitude, location.coordinate.longitude, location.speed]];
-    //[self setLatestData:dict];
-    
-    
-}
-
-
-- (void)insertNewEntit25yWithData:(NSDictionary *)data
-           managedObjectContext:(NSManagedObjectContext *)childContext
-                     entityName:(NSString *)entity{
-    
-    EntityLocation* entityLocation = (EntityLocation *)[NSEntityDescription
-                                              insertNewObjectForEntityForName:entity
-                                              inManagedObjectContext:childContext];
-    
-    entityLocation.device_id = [data objectForKey:@"device_id"];
-    entityLocation.timestamp = [data objectForKey:@"timestamp"];
-    entityLocation.double_latitude = [data objectForKey:@"double_latitude"];
-    entityLocation.double_longitude = [data objectForKey:@"double_longitude"];
-    entityLocation.double_bearing = [data objectForKey:@"double_bearing"];
-    entityLocation.double_speed = [data objectForKey:@"double_speed"];
-    entityLocation.double_altitude = [data objectForKey:@"double_altitude"];
-    entityLocation.provider = [data objectForKey:@"provider"];
-    entityLocation.accuracy = [data objectForKey:@"accuracy"];
-    entityLocation.label = [data objectForKey:@"label"];
-    
-}
-
-
-- (void)saveDummyData{
-    [self getGpsData:nil];
-}
-
-
-//- (void)locationManager:(CLLocationManager *)manager didUpdateHeading:(CLHeading *)newHeading {
-//    if (newHeading.headingAccuracy < 0)
-//        return;
-////    CLLocationDirection  theHeading = ((newHeading.trueHeading > 0) ?
-////                                       newHeading.trueHeading : newHeading.magneticHeading);
-////    [sdManager addSensorDataMagx:newHeading.x magy:newHeading.y magz:newHeading.z];
-////    [sdManager addHeading: theHeading];
-//}
-
-
-*/
-
 
 @end

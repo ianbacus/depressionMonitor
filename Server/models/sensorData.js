@@ -1,11 +1,20 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
-var DataSchema = new Schema({
-	userName            : {type: String, required: true}
-	data                : {type: String, required: true}
-    });
+var DataSchema = new Schema(
+{
+	userName            : {type: String, required: true},
+	userData			: 
+	[{
+		sensorName      : {type: String, required: true},
+		sensorData		:
+		[{
+			date        : {type: String, required: true},		
+			data        : {type: String, required: true}
+		}]
+	}]
+});
 
-var userData = mongoose.model('userData', DataSchema);
-module.exports = userData;
+var sensorData = mongoose.model('sensorData', DataSchema);
+module.exports = sensorData;
 

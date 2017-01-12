@@ -9,12 +9,21 @@
     UISegmentedControl * seg = (UISegmentedControl *)sender;
     //if (seg.selectedSegmentIndex == 0)
     //NSString *option = [seg valueForKeyPath:@"Sensor"];
-    NSString *option = [seg valueForKey:@"Sensor"];
-    if([seg selectedSegmentIndex]==1)
+    
+    NSArray *options = [NSArray arrayWithObjects:@"", @"Activity", @"Calls", @"Screen", @"Locations", @"Camera", @"AmbientNoise", @"AmbientLight", nil];
+    NSString* option = [options objectAtIndex:[seg tag]];
+    if([seg selectedSegmentIndex]==0)
          [[app sensorManager] startPeriodicCollectionForSensor:option];
     else
         [[app sensorManager] stopPeriodicCollectionForSensor:option];
-    
+}
+
+- (IBAction) uploadData:(id)sender
+{
+    AppDelegate * app = (AppDelegate*) [[UIApplication sharedApplication] delegate];
+    //[[app sensorManager] uploadSensorData:[NSURL URLWithString:@"http://10.0.0.57:3000"]];
+    [[app sensorManager] acceptDataFromSensors];
+    [[app sensorManager] uploadSensorData:[NSURL URLWithString:@"http://35.12.213.253:8080"]];
 }
 
 - (void)viewDidLoad {

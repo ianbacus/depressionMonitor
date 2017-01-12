@@ -18,8 +18,9 @@
 {
     self = [super init];
     if (self) {
-        self.dataTable = [[NSMutableDictionary alloc] init];
         self._name = @"Calls";
+        _callCenter = [[CTCallCenter alloc] init];
+        self.dataTable = [[NSMutableDictionary alloc] init];
     }
     return self;
 }
@@ -29,7 +30,7 @@
     [super startCollecting];
     
     // Set and start a call sensor
-    _callCenter = [[CTCallCenter alloc] init];
+    
     _callCenter.callEventHandler = ^(CTCall* call){
         NSString * callId = call.callID;
         if (callId == nil) callId = @"";
@@ -64,11 +65,12 @@
         
         NSLog(@"Call Duration is %d seconds @ [%@]", duration, callTypeStr);
        
-        [self.dataTable setObject:callTypeStr forKey:[NSDate date]];
+        [self saveData:callTypeStr];
         
     };
     return YES;
 }
+
 
 -(BOOL) stopCollecting
 {

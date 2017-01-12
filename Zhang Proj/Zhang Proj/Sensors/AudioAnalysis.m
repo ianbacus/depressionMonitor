@@ -121,7 +121,7 @@
 
 //RMS to check if we are in silence
 + (BOOL) isSilent:(double)rms threshold:(int)threshold{
-    if (rms > threshold) {
+    if (rms < threshold) {
         return YES;
     }else{
         return NO;

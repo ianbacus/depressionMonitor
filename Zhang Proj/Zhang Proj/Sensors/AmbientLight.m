@@ -11,18 +11,21 @@
 @implementation AmbientLight
 
 
-- (instancetype)init
+- (instancetype) initSensor
 {
+    self = [super init];
     if (self) {
+        self._name = @"AmbientLight";
         self.dataTable = [[NSMutableDictionary alloc] init];
     }
     return self;
 }
 
--(BOOL) startcollecting
+-(BOOL) startCollecting
 {
     [super startCollecting];
-    _dataCollectionTimer = [NSTimer scheduledTimerWithTimeInterval:600 target:self selector:@selector(getScreenBrightness) userInfo:nil repeats:YES];
+    _dataCollectionTimer = [NSTimer scheduledTimerWithTimeInterval:20 target:self selector:@selector(getScreenBrightness) userInfo:nil repeats:YES];
+    //[_dataCollectionTimer fire];
     return YES;
 }
 
@@ -37,9 +40,10 @@
 -(void) getScreenBrightness
 {
     NSString* brightnessStr = [NSString stringWithFormat:@"%f",[[UIScreen mainScreen] brightness]];
-    NSLog(@"Screen Brightness: %@",brightnessStr);
-    [self.dataTable setObject:brightnessStr forKey:[NSDate date]];
+    [self saveData:brightnessStr];
 }
+
+
 
 @end
 
