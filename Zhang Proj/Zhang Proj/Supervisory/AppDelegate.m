@@ -7,6 +7,8 @@
 //
 
 #import "AppDelegate.h"
+#import "backgroundViewController.h"
+
 
 @interface AppDelegate ()
 
@@ -19,13 +21,13 @@
     [application setMinimumBackgroundFetchInterval:UIApplicationBackgroundFetchIntervalMinimum];
     
     AppDelegate *app = self;
-    _dbManager = [[DBManager alloc] initWithModel:[app managedObjectModel] coordinator:[app persistentStoreCoordinator] andContext:[app managedObjectContext]];
+    _dbManager = [[DBManager alloc] initWithModel:[app managedObjectModel]
+                                        remoteURL:[NSURL URLWithString:@"http://10.0.0.57:8080"]
+                                      coordinator:[app persistentStoreCoordinator]
+                                       andContext:[app managedObjectContext]];
     _sensorManager = [[SensorManager alloc] initSensorManagerWithDBManager:_dbManager];
     assert(_sensorManager);
     [_sensorManager startPeriodicCollectionWithInterval:8];
-    
-    
-    NSLog(@"Starting app");
     
     return YES;
 }

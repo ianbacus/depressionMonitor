@@ -28,9 +28,7 @@
     self = [super init];
     if (self) {
         self._name = @"Locations";
-        //self.dataTable = [[NSMutableDictionary alloc] init];
         defaultInterval = 10; // seconds
-        //defaultInterval = -1; // only on updates to location
         defaultAccuracy = 1; // meters
         self.dataTable = [[NSMutableDictionary alloc] init];
         if (locationManager == nil){
@@ -47,7 +45,6 @@
             {
                 [locationManager requestAlwaysAuthorization];
             }
-            //[self saveAuthorizationStatus:[CLLocationManager authorizationStatus]];
         }
     }
     return self;
@@ -65,15 +62,11 @@
 - (BOOL)stopCollecting
 {
     [super stopCollecting];
-    // Stop a sensing timer
     [locationTimer invalidate];
     locationTimer = nil;
     
-    // Stop location sensors
-    [locationManager stopUpdatingHeading];
+    //[locationManager stopUpdatingHeading];
     [locationManager stopUpdatingLocation];
-    //locationManager = nil;
-    
     return YES;
 }
 
@@ -150,6 +143,22 @@
     NSString * accuracy = [[NSNumber numberWithDouble:acc] stringValue];
     NSString *locationStr = [@[latitude, longitude, accuracy] componentsJoinedByString:@","];
     [self saveData:locationStr];
+}
+
+
+-(NSArray*) createDataSetFromDBData:(NSArray*)dbData
+{
+    NSMutableArray *ret = [[NSMutableArray alloc] init];
+    for(int dataIndex=0;dataIndex<[dbData count]; dataIndex++)
+    {
+        id obj = [dbData objectAtIndex:dataIndex];
+        NSString *dataStr = [obj valueForKey:@"stateVal"];
+        NSArray* gpsLoc = [dataStr  componentsSeparatedByString:@","];
+        
+        CLLocation *point = [[CLLocation alloc] initWithLatitude:[gpsLoc[0] floatValue] longitude:[gpsLoc[1] floatValue]];
+        [ret insertObject:point atIndex:dataIndex];
+    }
+    return ret;
 }
 
 @end

@@ -11,5 +11,5 @@
 #import <CoreMotion/CoreMotion.h>
 
 @interface IOSActivityRecognition : Sensor
-
+@property NSString* lastUpdate;
 @end

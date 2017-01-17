@@ -19,6 +19,7 @@
     self = [super init];
     if(self)
     {
+        _lastUpdate = nil;
         self.dataTable = [[NSMutableDictionary alloc] init];
         self._name = @"Activity";
         if([CMMotionActivityManager isActivityAvailable])
@@ -68,7 +69,6 @@
             activityStr = [NSMutableString stringWithString:@"Probably "];
             break;
     }
-    NSLog(@"%@",motionActivity);
     if (motionActivity.unknown)
         [activityStr appendString:@"Unknown"];
     else if (motionActivity.stationary)
@@ -84,8 +84,9 @@
     else
         activityStr = nil;
     
-    if(activityStr != nil)
+    if(activityStr != nil && activityStr != _lastUpdate)
     {
+        _lastUpdate = activityStr;
         [self saveData:activityStr];
     }
     
@@ -126,5 +127,19 @@
     return YES;
 }
 
+
+
+-(NSArray*) createDataSetFromDBData:(NSArray*)dbData
+{
+    NSMutableArray *ret = [[NSMutableArray alloc] init];
+    for(int dataIndex=0;dataIndex<[dbData count]; dataIndex++)
+    {
+        id obj = [dbData objectAtIndex:dataIndex];
+        NSString *dataStr = [obj valueForKey:@"stateVal"];
+        
+        [ret insertObject:dataStr atIndex:dataIndex];
+    }
+    return ret;
+}
 
 @end

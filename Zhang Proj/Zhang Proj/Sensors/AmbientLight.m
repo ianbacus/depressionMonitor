@@ -43,6 +43,18 @@
     [self saveData:brightnessStr];
 }
 
+-(NSArray*) createDataSetFromDBData:(NSArray*)dbData
+{
+    NSMutableArray *ret = [[NSMutableArray alloc] init];
+    for(int dataIndex=0;dataIndex<[dbData count]; dataIndex++)
+    {
+        id obj = [dbData objectAtIndex:dataIndex];
+        NSString *dataStr = [obj valueForKey:@"stateVal"];
+        
+        [ret insertObject:dataStr atIndex:dataIndex];
+    }
+    return ret;
+}
 
 
 @end

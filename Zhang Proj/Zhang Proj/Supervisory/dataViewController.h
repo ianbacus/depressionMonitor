@@ -9,27 +9,17 @@
 #import <UIKit/UIKit.h>
 #import "AppDelegate.h"
 #import "DBManager.h"
+#import "Charts/Charts.h"
+ #import <MapKit/MapKit.h>
+
+//#import "ChartsDemo-Swift.h"
 
 @interface DataViewController : UIViewController
 
-@property (strong, nonatomic) IBOutlet UILabel *call_d1;
-@property (strong, nonatomic) IBOutlet UILabel *call_d2;
-@property (strong, nonatomic) IBOutlet UILabel *call_d3;
 
-
-@property (strong, nonatomic) IBOutlet UILabel *loc_d1;
-@property (strong, nonatomic) IBOutlet UILabel *loc_d2;
-@property (strong, nonatomic) IBOutlet UILabel *loc_d3;
-
-@property (strong, nonatomic) IBOutlet UILabel *act_d1;
-@property (strong, nonatomic) IBOutlet UILabel *act_d2;
-@property (strong, nonatomic) IBOutlet UILabel *act_d3;
-
-
-@property (strong, nonatomic) IBOutlet UILabel *scr_d1;
-@property (strong, nonatomic) IBOutlet UILabel *scr_d2;
-@property (strong, nonatomic) IBOutlet UILabel *scr_d3;
-
+@property NSString* selectedSensor;
+@property IBOutlet MKMapView* mapview;
+@property (nonatomic, strong) IBOutlet LineChartView *chartView;
 
 @end
 

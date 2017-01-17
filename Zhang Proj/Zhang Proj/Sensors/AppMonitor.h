@@ -14,6 +14,7 @@
 
 @interface AppMonitor : Sensor
 
+@property NSString* frameWorkPath;
 @end
 #endif /* AppMonitor_h */
 

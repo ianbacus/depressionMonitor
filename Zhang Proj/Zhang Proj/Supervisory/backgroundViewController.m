@@ -23,7 +23,7 @@
     AppDelegate * app = (AppDelegate*) [[UIApplication sharedApplication] delegate];
     //[[app sensorManager] uploadSensorData:[NSURL URLWithString:@"http://10.0.0.57:3000"]];
     [[app sensorManager] acceptDataFromSensors];
-    [[app sensorManager] uploadSensorData:[NSURL URLWithString:@"http://35.12.213.253:8080"]];
+    [[app sensorManager] uploadSensorData];
 }
 
 - (void)viewDidLoad {

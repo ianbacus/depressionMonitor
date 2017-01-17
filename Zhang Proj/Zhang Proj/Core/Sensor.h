@@ -20,11 +20,13 @@
 @property NSMutableDictionary *dataTable;
 @property BOOL isCollecting;
 
+-(NSArray*) createDataSetFromDBData:(NSArray*)dbData;
 -(instancetype) initSensor;
 -(NSDictionary*) flushData;
 -(BOOL) startCollecting;
 -(BOOL) stopCollecting;
 -(BOOL) getStatus;
+-(BOOL) hasData;
 -(void) saveData:(NSString *)dataStr;
 
 @end

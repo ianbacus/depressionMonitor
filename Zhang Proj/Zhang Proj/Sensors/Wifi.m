@@ -13,7 +13,8 @@
 #import <net/if.h>
 #import <SystemConfiguration/CaptiveNetwork.h>
 
-@implementation Wifi{
+@implementation Wifi
+{
     NSTimer * sensingTimer;
     double defaultInterval;
 }
@@ -68,13 +69,14 @@
 ///////////////////////////////////////////////////////////////////////////
 
 
-- (void) getWifiInfo
+- (BOOL) getWifiInfo
 {
     //[self broadcastRequestScan];
     //[self broadcastScanStarted];
     
     // Get wifi information
     //http://www.heapoverflow.me/question-how-to-get-wifi-ssid-in-ios9-after-captivenetwork-is-depracted-and-calls-for-wif-31555640
+    bool ret = nil;
     NSArray *ifs = (__bridge_transfer id)CNCopySupportedInterfaces();
     for (NSString *ifnam in ifs) {
         NSDictionary *info = (__bridge_transfer id)CNCopyCurrentNetworkInfo((__bridge CFStringRef)ifnam);
@@ -108,15 +110,21 @@
         }
         
         NSString* wifiString;
-        if(![self isWiFiEnabled])
+        if([self isWiFiEnabled])
+        {
             wifiString = [NSString stringWithFormat:@"%@ (%@)",ssid, finalBSSID];
+            ret = YES;
+        }
         else
+        {
             wifiString = [NSString stringWithFormat:@"Wifi module is powered off"];
+            ret = NO;
+        }
         [self saveData:wifiString];
         //[self broadcastDetectedNewDevice];
         
     }
-    
+    return ret;
 }
 
 

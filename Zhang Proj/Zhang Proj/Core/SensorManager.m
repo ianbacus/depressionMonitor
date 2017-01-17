@@ -10,8 +10,133 @@
 #import "SensorManager.h"
 
 
-
 @implementation SensorManager
+
+-(instancetype) initSensorManagerWithDBManager:(DBManager *)dbManager
+{
+    self = [super init];
+    if(self)
+    {
+        _startDate = [self getTargetNSDate:[NSDate new] hour:14 minute:0 second:0 nextDay:NO];
+        _dbManager = dbManager;
+        _sensorsArray = [NSArray arrayWithObjects:  [[IOSActivityRecognition alloc] initSensor], //0: activity
+                                                    [[Calls alloc] initSensor],                  //1: calls
+                                                    [[Screen alloc] initSensor],                 //2: screen
+                                                    [[Locations alloc] initSensor],              //3: locations
+                                                    [[Pedometer alloc] initSensor],              //4: pedometer
+                                                    //[[Camera alloc] initSensor],                 //4: face scan
+                                                    [[AmbientNoise alloc] initSensor],           //5: ambient noise
+                                                    [[AmbientLight alloc] initSensor],           //6: screen brightness
+                                                    [[Wifi alloc] initSensor],                   //7: wifi
+                                                        nil];
+        
+    }
+    return self;
+}
+
+-(Sensor*) getSensorByName:(NSString*)sensorName
+{
+    for(Sensor* sensor in _sensorsArray)
+    {
+        if([sensor _name] == sensorName)
+        {
+            return sensor;
+        }
+    }
+    return nil;
+}
+
+- (BOOL) startPeriodicCollectionForSensor:(NSString*)sensorName
+{
+    Sensor* sensor = [self getSensorByName:sensorName];
+    if(![sensor isCollecting] )
+        [sensor startCollecting];
+    return YES;
+}
+
+-(NSArray*) createDataSetForSensor:(NSString*) sensorName fromStartDate:(NSDate *)startDate toEndDate:(NSDate*)endDate
+{
+    NSArray* dbData = [_dbManager getDataForSensor:sensorName fromStartDate:startDate toEndDate:endDate];
+    Sensor* sensor = [self getSensorByName:sensorName];
+    return [sensor createDataSetFromDBData:dbData];
+}
+
+-(BOOL) startPeriodicCollectionWithInterval:(float) interval
+{
+    //Make all sensors begin collecting data. On specified interval, flush the data of each sensor into the database
+    [self activate];
+    _dataCollectionTimer = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(acceptDataFromSensors) userInfo:nil repeats:YES];
+    _dailyUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:160 target:self selector:@selector(dailySync) userInfo:nil repeats:YES];
+    //[_dailyUpdateTimer fire];
+    for (Sensor* sensor in _sensorsArray)
+    {
+        [sensor startCollecting];
+    }
+    return YES;
+}
+
+-(BOOL) stopPeriodicCollection
+{
+    [self deactivate];
+    [_dataCollectionTimer invalidate];
+    _dataCollectionTimer = nil;
+    for (id sensor in _sensorsArray)
+    {
+        [sensor stopCollecting];
+    }
+    return YES;
+}
+
+- (BOOL) stopPeriodicCollectionForSensor:(NSString*)sensorName
+{
+    Sensor* sensor = [self getSensorByName:sensorName];
+    if(![sensor isCollecting])
+    {
+        [sensor stopCollecting];
+    }
+    return YES;
+}
+
+
+-(void) uploadSensorData
+{
+    for (Sensor* sensor in _sensorsArray)
+    {
+        NSString *sensorName = [sensor _name];
+        //NSArray* data = [_dbManager getDataForSensor:sensorName];
+        NSArray* data = [_dbManager getDataForSensor:sensorName
+                                       fromStartDate:_startDate
+                                    toEndDate:[self getTargetNSDate:[NSDate new] hour:15 minute:30 second:0 nextDay:NO]];
+        if([data count] > 0)
+            [_dbManager postData:data forSensor:sensorName];
+    
+    }
+    _startDate = [NSDate new];
+}
+
+
+-(void) acceptDataFromSensors
+{
+    //Delete local copy of data (dictionaries maintained for each sensor), store them in the SQLite database
+    for (Sensor* sensor in _sensorsArray)
+    {
+        if([sensor hasData])
+        {
+            [self acceptDataFromSensor:sensor];
+        }
+    }
+    
+}
+
+-(void) acceptDataFromSensor:(Sensor *)sensor
+{
+    //Delete local copy of data (dictionaries maintained for each sensor), store them in the SQLite database
+    [_dbManager saveData:[sensor flushData]
+                  forSensor:[sensor _name]];
+    
+}
+
+//////
 
 - (NSDate *) getTargetNSDate:(NSDate *) nsDate
                         hour:(int) hour
@@ -52,51 +177,12 @@
     
     [UIDevice currentDevice].batteryMonitoringEnabled = YES;
     
-    /*
-    /// Set defualt settings
-    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-    if (![userDefaults boolForKey:@"aware_inited"]) {
-        [userDefaults setBool:NO forKey:SETTING_DEBUG_STATE];                 // Default Value: NO
-        [userDefaults setBool:YES forKey:SETTING_SYNC_WIFI_ONLY];             // Default Value: YES
-        [userDefaults setBool:YES forKey:SETTING_SYNC_BATTERY_CHARGING_ONLY]; // Default Value: YES
-        [userDefaults setDouble:60*15 forKey:SETTING_SYNC_INT];               // Default Value: 60*15 (sec)
-        [userDefaults setBool:NO forKey:KEY_APP_TERMINATED];                  // Default Value: NO
-        [userDefaults setInteger:0 forKey:KEY_UPLOAD_MARK];                   // Defualt Value: 0
-        [userDefaults setInteger:1000 * 1000 forKey:KEY_MAX_DATA_SIZE];        // Defualt Value: 1000*1000 (byte) (1000 KB)
-        [userDefaults setInteger:cleanOldDataTypeAlways forKey:SETTING_FREQUENCY_CLEAN_OLD_DATA];
-        [userDefaults setBool:YES forKey:@"aware_inited"];
-    }
-    if (![userDefaults boolForKey:@"aware_inited_1.8.2"]) {
-        [userDefaults setInteger:10000 forKey:KEY_MAX_FETCH_SIZE_MOTION_SENSOR];        // Defualt Value: 10000
-        [userDefaults setInteger:10000 forKey:KEY_MAX_FETCH_SIZE_NORMAL_SENSOR];         // Defualt Value: 10000
-        [userDefaults setBool:YES forKey:@"aware_inited_1.8.2"];
-    }
     
-    if([userDefaults integerForKey:SETTING_DB_TYPE] == AwareDBTypeUnknown){
-        [userDefaults setInteger:AwareDBTypeTextFile forKey:SETTING_DB_TYPE];
-    }
-    
-    double uploadInterval = [userDefaults doubleForKey:SETTING_SYNC_INT];
-    
-    */
-    /**
-     * Start a location sensor for background sensing.
-     * On the iOS, we have to turn on the location sensor
-     * for using application in the background.
-     */
-    
+    //Use Location Sensor exploit to enable background data collection
     [self initLocationSensor];
     
-    // start sensors
-//[_sharedSensorManager startAllSensors];
-//[_sharedSensorManager startUploadTimerWithInterval:uploadInterval];
-    //    [self.sharedSensorManager syncAllSensorsWithDBInBackground];
-    
-    /// Set a timer for a daily sync update
-    /**
-     * Every 2AM, AWARE iOS refresh the joining study in the background.
-     * A developer can change the time (2AM to xxxAM/PM) by changing the dailyUpdateTime(NSDate) Object
-     */
+    /// Set a timer for a daily sync update with specific time
+    /*
     NSDate* dailyUpdateTime = [self getTargetNSDate:[NSDate new] hour:2 minute:0 second:0 nextDay:YES]; //2AM
     _dailyUpdateTimer = [[NSTimer alloc] initWithFireDate:dailyUpdateTime
                                                  interval:60*60*24 // daily
@@ -104,11 +190,11 @@
                                                  selector:@selector(dailySync)
                                                  userInfo:nil
                                                   repeats:YES];
-    NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
-    //    [runLoop addTimer:dailyUpdateTimer forMode:NSDefaultRunLoopMode];
-    [runLoop addTimer:_dailyUpdateTimer forMode:NSRunLoopCommonModes];
     
-    // [_complianceTimer fire];
+    //_dailyUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:10 target:self selector:@selector(dailySync) userInfo:nil repeats:YES];
+    NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
+    [runLoop addTimer:_dailyUpdateTimer forMode:NSRunLoopCommonModes];
+    */
     
     // Battery Save Mode
     CGFloat currentVersion = [[[UIDevice currentDevice] systemVersion] floatValue];
@@ -120,7 +206,6 @@
                                                  selector:@selector( checkCompliance)
                                                      name:UIApplicationBackgroundRefreshStatusDidChangeNotification
                                                    object:nil];
-        
     }
     
     // battery state trigger
@@ -129,11 +214,16 @@
                                              selector:@selector(changedBatteryState:)
                                                  name:UIDeviceBatteryStateDidChangeNotification object:nil];
     
-    
 }
+
 -(void) dailySync
 {
-//perform daily sync operation
+    //perform daily sync operation: reset all sensor and process data
+    if([[_sensorsArray objectAtIndex:7] getWifiInfo])
+    {
+        [self acceptDataFromSensors];
+        [self uploadSensorData];
+    }
 }
 
 -(void) checkCompliance
@@ -164,16 +254,9 @@
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-/**
- * This method is an initializers for a location sensor.
- * On the iOS, we have to turn on the location sensor
- * for using application in the background.
- * And also, this sensing interval is the most low level.
- */
+
 - (void) initLocationSensor {
-    // NSLog(@"start location sensing!");
-    // CLAuthorizationStatus status = [CLLocationManager authorizationStatus];
-    // if ( _sharedLocationManager == nil) {
+    //Set up location sensor for background updates
     if ( _sharedLocationManager != nil) {
         [_sharedLocationManager stopUpdatingHeading];
         [_sharedLocationManager stopMonitoringVisits];
@@ -193,19 +276,12 @@
         /// After iOS 9.0, we have to set "YES" for background sensing.
         _sharedLocationManager.allowsBackgroundLocationUpdates = YES;
     }
-    
-    //    if ([_sharedLocationManager respondsToSelector:@selector(requestAlwaysAuthorization)]) {
-    //        [_sharedLocationManager requestAlwaysAuthorization];
-    //    }
-    
     CLAuthorizationStatus state = [CLLocationManager authorizationStatus];
     if(state == kCLAuthorizationStatusAuthorizedAlways){
-        // Set a movement threshold for new events.
         _sharedLocationManager.distanceFilter = 25; // meters
         [_sharedLocationManager startUpdatingLocation];
         [_sharedLocationManager startMonitoringSignificantLocationChanges];
     }
-    // }
 }
 
 /**
@@ -215,51 +291,17 @@
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
     bool appTerminated = [userDefaults boolForKey:@"APP_TERM"];
     if (appTerminated) {
-        NSString * message = @"AWARE client iOS is rebooted";
-        
+        //NSString * message = @"App closed.";
+        NSLog(@"App closed.");
         NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
         [userDefaults setBool:NO forKey:@"APP_TERM"];
     }else{
         // [AWAREUtils sendLocalNotificationForMessage:@"" soundFlag:YES];
-        //NSLog(@"Base Location Sensor.");
-        //        if ([userDefaults boolForKey: SETTING_DEBUG_STATE]) {
-        //            for (CLLocation * location in locations) {
-        //                NSLog(@"%@",location.description);
-        //
-        //            }
-        //        }
-    }
-}
-
-/**
- * This method returns application condition (background or foreground).
- *
- * @return 'YES' is foreground. 'NO' is background.
- */
-+ (BOOL) getAppState {
-    UIApplicationState appState = [[UIApplication sharedApplication] applicationState];
-    switch (appState) {
-        case UIApplicationStateActive:
-            NSLog(@"Application is in the foreground!");
-            return YES;
-        case UIApplicationStateInactive:
-            NSLog(@"Application is in the foreground!");
-            return YES;
-        case UIApplicationStateBackground:
-            NSLog(@"Application is in the background!");
-            return NO;
-        default:
-            return NO;
+        
     }
 }
 
 
-
-/**
- * This method sets application is in the foreground or not.
- *
- * @return state 'YES' is foreground. 'NO' is background.
- */
 + (BOOL)isForeground{
     UIApplicationState appState = [[UIApplication sharedApplication] applicationState];
     switch (appState) {
@@ -277,11 +319,7 @@
     }
 }
 
-/**
- * This method sets application condition in the background or not.
- *
- * @return state 'YES' is background, on the other hand 'NO' is foreground.
- */
+
 + (BOOL)isBackground{
     UIApplicationState appState = [[UIApplication sharedApplication] applicationState];
     switch (appState) {
@@ -298,117 +336,7 @@
             return NO;
     }
 }
-
-- (NSURL*)storeURL
-{
-    NSURL* documentsDirectory = [[NSFileManager defaultManager] URLForDirectory:NSDocumentDirectory inDomain:NSUserDomainMask appropriateForURL:nil create:YES error:NULL];
-    return [documentsDirectory URLByAppendingPathComponent:@"db.sqlite"];
-}
-
-- (NSURL*)modelURL
-{
-    return [[NSBundle mainBundle] URLForResource:@"NestedTodoList" withExtension:@"momd"];
-}
-
--(instancetype) initSensorManagerWithDBManager:(DBManager *)dbManager
-{
-    self = [super init];
-    if(self)
-    {
-        _dbManager = dbManager;
-        _sensorsArray = [NSArray arrayWithObjects:  [[IOSActivityRecognition alloc] initSensor], //0: activity
-                                                    [[Calls alloc] initSensor],                  //1: calls
-                                                    [[Screen alloc] initSensor],                 //2: screen
-                                                    [[Locations alloc] initSensor],              //3: locations
-                                                    [[Camera alloc] initSensor],                 //4: face scan
-                                                    [[AmbientNoise alloc] initSensor],           //5: ambient noise
-                                                    [[AmbientLight alloc] initSensor],           //6: screen brightness
-                                                        nil];
-        
-    }
-    return self;
-}
-
-- (BOOL) startPeriodicCollectionForSensor:(NSString*)sensorName
-{
-    [self activate ];
-    for(Sensor* sensor in _sensorsArray)
-    {
-        if([sensor _name] == sensorName){
-            [sensor startCollecting];
-        }
-    }
-    return YES;
-}
-
-- (BOOL) stopPeriodicCollectionForSensor:(NSString*)sensorName
-{
-    [self deactivate];
-    for(Sensor* sensor in _sensorsArray)
-    {
-        if([sensor _name] == sensorName){
-           [sensor stopCollecting];
-        }
-    }
-    return YES;
-}
-
--(BOOL) startPeriodicCollectionWithInterval:(float) interval
-{
-    //Make all sensors begin collecting data. On specified interval, flush the data of each sensor into the database
-    
-    _dataCollectionTimer = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(acceptDataFromSensors) userInfo:nil repeats:YES];
-    for (Sensor* sensor in _sensorsArray)
-    {
-        [sensor startCollecting];
-    }
-    return YES;
-}
-
--(BOOL) stopPeriodicCollection
-{
-    [_dataCollectionTimer invalidate];
-    _dataCollectionTimer = nil;
-    for (id sensor in _sensorsArray)
-    {
-        [sensor stopCollecting];
-    }
-    return YES;
-}
-
--(void) acceptDataFromSensors
-{
-    for (Sensor* sensor in _sensorsArray)
-    {
-        if([sensor isCollecting])
-        {
-            [self acceptDataFromSensor:sensor];
-        }
-    }
-    
-}
-
-
--(void) uploadSensorData:(NSURL*)dbServer
-{
-    for (Sensor* sensor in _sensorsArray)
-    {
-        if([sensor isCollecting])
-        {
-            NSString *sensorName = [sensor _name];
-            NSArray* data = [_dbManager getDataForSensor:sensorName];
-            [_dbManager postData:data forSensor:sensorName toURL:dbServer];
-        }
-    }
-}
-
-
--(void) acceptDataFromSensor:(Sensor *)sensor
-{
-    [_dbManager saveData:[sensor flushData]
-                  forSensor:[sensor _name]];
-    
-}
+/////
 
 
 @end

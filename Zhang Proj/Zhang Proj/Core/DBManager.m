@@ -8,10 +8,12 @@
 
 #import "DBManager.h"
 #import "AppDelegate.h"
-
+#define DATA_LEN_MAX 200000000
 @interface DBManager ()
 
+@property int networkThreads;
 @property (nonatomic) NSManagedObjectModel* managedObjectModel;
+@property (nonatomic) NSURL* remoteURL;
 @property (nonatomic,strong,readwrite) NSManagedObjectContext* managedObjectContext;
 @property (readonly, strong, nonatomic) NSPersistentStoreCoordinator* persistentStoreCoordinator;
 //@property (nonatomic,strong) NSURL* modelURL;
@@ -22,10 +24,13 @@
 @implementation DBManager
 
 
-- (instancetype)initWithModel:(NSManagedObjectModel*)model coordinator:(NSPersistentStoreCoordinator*) coordinator andContext:(NSManagedObjectContext*)context
+- (instancetype)initWithModel:(NSManagedObjectModel*)model remoteURL:(NSURL*)dbURL coordinator:(NSPersistentStoreCoordinator*) coordinator andContext:(NSManagedObjectContext*)context
 {
     self = [super init];
-    if (self) {
+    if (self)
+    {
+        _networkThreads = 0;
+        _remoteURL = dbURL;
         _managedObjectModel = model;
         _managedObjectContext = context;
         _persistentStoreCoordinator = coordinator;
@@ -33,13 +38,31 @@
     return self;
 }
 
+
 - (NSArray *) getDataForSensor:(NSString *)sensorName
 {
+    
     NSEntityDescription *sensor = [NSEntityDescription entityForName:@"SensorDataEntity" inManagedObjectContext:_managedObjectContext];
     NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
     [fetchRequest setEntity:sensor];
     [fetchRequest setPredicate:[NSPredicate predicateWithFormat:@"name == %@", sensorName]];
+    
+    NSError *error = nil;
+    NSArray *results = [_managedObjectContext executeFetchRequest:fetchRequest error:&error];
+    if (results == nil) {
+        NSLog(@"Error fetching Sensor data: %@\n%@", [error localizedDescription], [error userInfo]);
+        abort();
+    }
+    return results;
+}
 
+- (NSArray *) getDataForSensor:(NSString *)sensorName fromStartDate:(NSDate*)startDate toEndDate:(NSDate*)endDate
+{
+    NSEntityDescription *sensor = [NSEntityDescription entityForName:@"SensorDataEntity" inManagedObjectContext:_managedObjectContext];
+    NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
+    [fetchRequest setEntity:sensor];
+    [fetchRequest setPredicate:[NSPredicate predicateWithFormat:@"name == %@ AND (time >= %@)", sensorName, startDate]];
+    
     NSError *error = nil;
     NSArray *results = [_managedObjectContext executeFetchRequest:fetchRequest error:&error];
     if (results == nil) {
@@ -85,66 +108,83 @@
     }
 }
 
--(void)postData:(NSArray*)data forSensor:(NSString*)sensorName toURL:(NSURL*)dbServer
+-(void)postData:(NSArray*)data forSensor:(NSString*)sensorName
 {
-    
-    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
-    NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:nil];
-    NSURL *url = dbServer;
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
-                                                           cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                                       timeoutInterval:60.0];
-    
+    bool dataAvailable = YES;
+    int dataIndex = 0;
+    int dataLen = 0;
     NSMutableDictionary *jsonDict = [[NSMutableDictionary alloc] init];
     NSMutableDictionary *userData = [[NSMutableDictionary alloc] init];
     NSMutableArray *sensorData = [[NSMutableArray alloc] init];
     NSDateFormatter* timeFormat = [[NSDateFormatter alloc] init];
     [timeFormat setDateFormat:@"yyyy-MM-dd (HH:mm:ss)"];
-    
-    for(id obj in data)
+    while(dataAvailable)
     {
-        
-        NSString *timeStr =[timeFormat stringFromDate:[obj valueForKey:@"time"]];
-        NSString *dataStr = [obj valueForKey:@"stateVal"];
-        if((timeStr != nil) && (dataStr != nil))
+        for(dataIndex=dataIndex;dataIndex<[data count]; dataIndex++)
         {
-            [sensorData addObject: [[NSDictionary alloc] initWithObjectsAndKeys:
-                                        timeStr, @"date",
-                                        dataStr, @"data",
-                                        nil]];
+            id obj = [data objectAtIndex:dataIndex];
+            if(dataLen > DATA_LEN_MAX)
+            {
+                break;
+            }
+            
+            NSString *timeStr =[timeFormat stringFromDate:[obj valueForKey:@"time"]];
+            NSString *dataStr = [obj valueForKey:@"stateVal"];
+            dataLen += [dataStr length];
+            if((timeStr != nil) && (dataStr != nil))
+            {
+                [sensorData addObject: [[NSDictionary alloc] initWithObjectsAndKeys:
+                                            timeStr, @"date",
+                                            dataStr, @"data",
+                                            nil]];
+            }
         }
+        if(dataIndex >= [data count])
+            dataAvailable = NO;
+        jsonDict [@"userName"] =[[UIDevice currentDevice] name];
+        userData [@"sensorName"] = sensorName;
+        userData [@"sensorData"] = sensorData;
+        jsonDict [@"userData"] = userData;
+        while(_networkThreads > 5) {}
+        _networkThreads += 1;
+        [self uploadData:jsonDict];
     }
-    jsonDict [@"userName"] =[[UIDevice currentDevice] name];
-    userData [@"sensorName"] = sensorName;
-    userData [@"sensorData"] = sensorData;
-    jsonDict [@"userData"] = userData;
+    //[self deleteAllDataForSensor:sensorName];
+}
+
+
+
+-(void) uploadData:(NSDictionary *)postJSON
+{
     
-    /*
-    for(id obj in data)
-    {
-        NSString *timeStr =[NSString stringWithFormat:@"%@",[obj valueForKey:@"time"]];
-        NSString *dataStr = [obj valueForKey:@"stateVal"];
-        if((timeStr != nil) && (dataStr != nil))
-        {
-            [jsonDict setValue:dataStr forKey:timeStr];
-        }
-    }
-    */
+    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:nil];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:_remoteURL
+                                                           cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                       timeoutInterval:60.0];
+    
     NSError *error;
-    NSData *postData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
+    NSData *postData = [NSJSONSerialization dataWithJSONObject:postJSON options:0 error:&error];
     
     [request addValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
     [request setHTTPMethod:@"POST"];
     [request setHTTPBody:postData];
     
-    [self deleteAllDataForSensor:sensorName];
     
-    NSURLSessionDataTask *postDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-        //NSLog(@"%@",response);
+    
+    NSURLSessionDataTask *postDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error)
+    {
+        _networkThreads -=1;
+        if(error == nil)
+        {
+            NSLog(@"No post error");
+            
+        }
+        else NSLog(@"Post error...");
+    
     }];
     
     [postDataTask resume];
-    
 }
 
 

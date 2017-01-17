@@ -181,7 +181,7 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
             number++;
             [self startRecording:[NSDictionary dictionaryWithObject:@(number) forKey:KEY_AUDIO_CLIP_NUMBER]];
         }else{
-            NSLog(@"Stop Recording");
+            //NSLog(@"Stop Recording");
             number = 0;
             _isRecording = NO;
         }
@@ -335,6 +335,20 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
     //    dispatch_async(dispatch_get_main_queue(), ^{
     //        weakSelf.currentTimeLabel.text = formattedCurrentTime;
     //    });
+}
+
+
+-(NSArray*) createDataSetFromDBData:(NSArray*)dbData
+{
+    NSMutableArray *ret = [[NSMutableArray alloc] init];
+    for(int dataIndex=0;dataIndex<[dbData count]; dataIndex++)
+    {
+        id obj = [dbData objectAtIndex:dataIndex];
+        NSString *dataStr = [obj valueForKey:@"stateVal"];
+        
+        [ret insertObject:dataStr atIndex:dataIndex];
+    }
+    return ret;
 }
 
 

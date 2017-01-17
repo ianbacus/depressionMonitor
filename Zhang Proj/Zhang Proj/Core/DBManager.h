@@ -15,11 +15,12 @@
 
 @property (nonatomic,strong,readonly) NSManagedObjectContext* managedObjectContext;
 
-- (instancetype)initWithModel:(NSManagedObjectModel*)model coordinator:(NSPersistentStoreCoordinator*) coordinator andContext:(NSManagedObjectContext*)context;
+- (instancetype)initWithModel:(NSManagedObjectModel*)model remoteURL:(NSURL*)dbURL coordinator:(NSPersistentStoreCoordinator*) coordinator andContext:(NSManagedObjectContext*)context;
 
 - (void) saveData:(NSDictionary*)data forSensor:(NSString*)sensorName;
 - (NSArray *) getDataForSensor :(NSString*)sensorName;
-- (void)postData:(NSArray*)data forSensor:(NSString*)sensorName toURL:(NSURL*)dbServer;
+- (NSArray *) getDataForSensor:(NSString *)sensorName fromStartDate:(NSDate*)startDate toEndDate:(NSDate*)endDate;
+- (void)postData:(NSArray*)data forSensor:(NSString*)sensorName;
 - (void)deleteAllDataForSensor:(NSString*)sensor;
 
 

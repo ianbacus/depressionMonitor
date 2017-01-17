@@ -44,6 +44,14 @@
     return YES;
 }
 
+-(BOOL) hasData
+{
+    if([self.dataTable count] > 0)
+        return YES;
+    else
+        return NO;
+}
+
 -(BOOL) startCollecting
 {
     NSLog(@"%@: Started collecting",self._name);
@@ -60,7 +68,8 @@
 
 -(void) saveData:(NSString *)dataStr
 {
-    NSLog(@"%@: %@",self._name, dataStr);
+    
+    //NSLog(@"%@: %@",self._name, dataStr);
     [self.dataTable setObject:dataStr forKey:[[NSDate alloc] init]];
 }
 

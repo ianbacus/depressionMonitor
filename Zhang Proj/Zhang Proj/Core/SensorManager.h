@@ -18,6 +18,9 @@
 #import "IOSActivityRecognition.h"
 #import "AmbientLight.h"
 #import "AmbientNoise.h"
+#import "Wifi.h"
+#import "Pedometer.h"
+
 
 
 #ifndef SensorManager_h
@@ -26,6 +29,7 @@
 @interface SensorManager : NSObject 
 
 @property DBManager* dbManager;
+@property NSDate* startDate;
 @property NSArray* sensorsArray;
 @property NSTimer* dataCollectionTimer;
 @property NSTimer* dailyUpdateTimer;
@@ -35,7 +39,7 @@
 
 -(void) acceptDataFromSensors;
 -(void) acceptDataFromSensor :(Sensor*)sensor;
--(void) uploadSensorData:(NSURL*)dbServer;
+-(void) uploadSensorData;
 
 -(BOOL) startPeriodicCollectionWithInterval:(float)interval;
 -(BOOL) stopPeriodicCollection;
@@ -44,5 +48,9 @@
 
 
 @end
+
+@interface SensorManager() <CLLocationManagerDelegate>;
+@end
+
 
 #endif /* SensorManager_h */
