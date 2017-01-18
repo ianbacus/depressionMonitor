@@ -17,7 +17,8 @@
     self = [super init];
     if(self)
     {
-        _startDate = [self getTargetNSDate:[NSDate new] hour:14 minute:0 second:0 nextDay:NO];
+        [NSTimeZone setDefaultTimeZone:[NSTimeZone timeZoneWithName:@"EST"]];
+        _startDate = [self getTargetNSDate:[NSDate new] hour:0 minute:0 second:0 nextDay:NO];
         _dbManager = dbManager;
         _sensorsArray = [NSArray arrayWithObjects:  [[IOSActivityRecognition alloc] initSensor], //0: activity
                                                     [[Calls alloc] initSensor],                  //1: calls
@@ -67,7 +68,6 @@
     [self activate];
     _dataCollectionTimer = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(acceptDataFromSensors) userInfo:nil repeats:YES];
     _dailyUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:160 target:self selector:@selector(dailySync) userInfo:nil repeats:YES];
-    //[_dailyUpdateTimer fire];
     for (Sensor* sensor in _sensorsArray)
     {
         [sensor startCollecting];
@@ -109,7 +109,6 @@
                                     toEndDate:[self getTargetNSDate:[NSDate new] hour:15 minute:30 second:0 nextDay:NO]];
         if([data count] > 0)
             [_dbManager postData:data forSensor:sensorName];
-    
     }
     _startDate = [NSDate new];
 }
@@ -142,8 +141,10 @@
                         hour:(int) hour
                       minute:(int) minute
                       second:(int) second
-                     nextDay:(BOOL)nextDay {
+                     nextDay:(BOOL)nextDay
+{
     NSCalendar *calendar = [NSCalendar currentCalendar];
+    [calendar setTimeZone:[NSTimeZone defaultTimeZone]];
     NSDateComponents *dateComps = [calendar components:NSCalendarUnitYear   |
                                    NSCalendarUnitMonth  |
                                    NSCalendarUnitDay    |
@@ -151,6 +152,8 @@
                                    NSCalendarUnitMinute |
                                    NSCalendarUnitSecond
                                               fromDate:nsDate];
+    
+    //hour -= [[NSTimeZone systemTimeZone] secondsFromGMT] / 3600.0;
     [dateComps setDay:dateComps.day];
     [dateComps setHour:hour];
     [dateComps setMinute:minute];
@@ -158,7 +161,8 @@
     NSDate * targetNSDate = [calendar dateFromComponents:dateComps];
     //    return targetNSDate;
     
-    if (nextDay) {
+    if (nextDay)
+    {
         if ([targetNSDate timeIntervalSince1970] < [nsDate timeIntervalSince1970]) {
             [dateComps setDay:dateComps.day + 1];
             NSDate * tomorrowNSDate = [calendar dateFromComponents:dateComps];
@@ -172,7 +176,8 @@
 }
 
 
-- (void) activate {
+- (void) activate
+{
     [self deactivate];
     
     [UIDevice currentDevice].batteryMonitoringEnabled = YES;
@@ -231,7 +236,8 @@
     
 }
 
-- (void) changedBatteryState:(id) sender{
+- (void) changedBatteryState:(id) sender
+{
     NSInteger batteryState = [UIDevice currentDevice].batteryState;
     if (batteryState == UIDeviceBatteryStateCharging || batteryState == UIDeviceBatteryStateFull) {
         NSLog(@"Battery is charging or full.");
@@ -255,9 +261,11 @@
 ////////////////////////////////////////////////////////////////////////////////////
 
 
-- (void) initLocationSensor {
+- (void) initLocationSensor
+{
     //Set up location sensor for background updates
-    if ( _sharedLocationManager != nil) {
+    if ( _sharedLocationManager != nil)
+    {
         [_sharedLocationManager stopUpdatingHeading];
         [_sharedLocationManager stopMonitoringVisits];
         [_sharedLocationManager stopUpdatingLocation];
@@ -287,7 +295,8 @@
 /**
  * The method is called by location sensor when the device location is changed.
  */
-- (void) locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray<CLLocation *> *)locations{
+- (void) locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray<CLLocation *> *)locations
+{
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
     bool appTerminated = [userDefaults boolForKey:@"APP_TERM"];
     if (appTerminated) {

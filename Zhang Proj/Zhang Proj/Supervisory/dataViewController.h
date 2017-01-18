@@ -16,14 +16,14 @@
 
 @interface DataViewController : UIViewController
 
-
+@property SEL dataVisualizationSelector;
 @property NSString* selectedSensor;
 @property NSMutableDictionary* todaysData;
 @property NSDictionary* timeBoundaries;
 @property IBOutlet MKMapView* mapview;
 @property (nonatomic, strong) IBOutlet LineChartView *chartView;
 
-@property (weak, nonatomic) IBOutlet UITabBar *myTabBar;
+//@property (weak, nonatomic) IBOutlet UITabBar *myTabBar;
 
 -(void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item;
 

@@ -112,7 +112,7 @@
         int screenVal = 0;
         if([[obj valueForKey:@"stateVal"] isEqualToString:@"Off"])
             screenVal = 0;
-        if([[obj valueForKey:@"stateVal"] isEqualToString:@"On"])
+        else if([[obj valueForKey:@"stateVal"] isEqualToString:@"On"])
             screenVal = 1;
         else continue;
         

@@ -58,10 +58,12 @@
 
 - (NSArray *) getDataForSensor:(NSString *)sensorName fromStartDate:(NSDate*)startDate toEndDate:(NSDate*)endDate
 {
+    //Fetch from database for all data after start date (for a sensor)
     NSEntityDescription *sensor = [NSEntityDescription entityForName:@"SensorDataEntity" inManagedObjectContext:_managedObjectContext];
     NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
     [fetchRequest setEntity:sensor];
-    [fetchRequest setPredicate:[NSPredicate predicateWithFormat:@"name == %@ AND (time >= %@)", sensorName, startDate]];
+    [fetchRequest setPredicate:[NSPredicate predicateWithFormat:@"(name == %@) AND (time >= %@) AND (time <= %@)",
+                                sensorName, startDate, endDate]];
     
     NSError *error = nil;
     NSArray *results = [_managedObjectContext executeFetchRequest:fetchRequest error:&error];

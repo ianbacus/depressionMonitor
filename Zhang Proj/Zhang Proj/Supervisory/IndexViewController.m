@@ -10,69 +10,64 @@
 {
     [super viewDidLoad];
     self.view.backgroundColor = [[UIColor alloc] initWithRed:0 green:0 blue:0 alpha:1.0];
-    self.onColor = [UIColor colorWithRed:(218/256) green:(236/256) blue:(239/256) alpha:1];
-    self.onColors = [[NSArray alloc] initWithObjects:
+    _onColors = [[NSArray alloc] initWithObjects:
                      [UIColor colorWithRed:.85 green:.92 blue:.93 alpha:1],
                      [UIColor colorWithRed:.42 green:.75 blue:.99 alpha:1],
-                     [UIColor colorWithRed:.77 green:.9 blue:.7 alpha:1],
+                     [UIColor colorWithRed:.42 green:.55 blue:.99 alpha:1],
+                     [UIColor colorWithRed:.77 green:.90 blue:.70 alpha:1],
                      [UIColor colorWithRed:.98 green:.82 blue:.48 alpha:1],
-                     nil];
+                     nil]; //Colors for each cell
+    _currentColors = [[NSMutableArray alloc] initWithArray:_onColors copyItems:YES];
     
-    self.currentColors = [[NSMutableArray alloc] initWithArray:self.onColors copyItems:YES];
+    _sensorStates =[[NSMutableArray alloc] initWithObjects:
+                        [NSNumber numberWithBool:YES],
+                        [NSNumber numberWithBool:YES],
+                        [NSNumber numberWithBool:YES],
+                        [NSNumber numberWithBool:YES],
+                        [NSNumber numberWithBool:YES],
+                        nil]; //States (on/off) for each cell and its sensors
     
-    self.sensorStates =[[NSMutableArray alloc] initWithObjects:
-                        [NSNumber numberWithBool:YES],
-                        [NSNumber numberWithBool:YES],
-                        [NSNumber numberWithBool:YES],
-                        [NSNumber numberWithBool:YES],
-                        nil];
-    
-    self.sensors= [[NSArray alloc] initWithObjects:
+    _sensorTitles = [[NSArray alloc] initWithObjects:
                    [self getSensorCellDataByName:@"Phone"],
                    [self getSensorCellDataByName:@"Social"],
+                   [self getSensorCellDataByName:@"Locations"],
                    [self getSensorCellDataByName:@"Activity"],
                    [self getSensorCellDataByName:@"Ambience"],
-                   
-                   nil];
-    UISwipeGestureRecognizer *recognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self
-                                                                                     action:@selector(leftSwipe:)];
+                   nil]; //Titles for each cell
     
+    UISwipeGestureRecognizer *recognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(leftSwipe:)];
     [recognizer setDirection:(UISwipeGestureRecognizerDirectionLeft)];
     [self.tableView addGestureRecognizer:recognizer];
-    
-    recognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self
-                                                           action:@selector(rightSwipe:)];
-    recognizer.delegate = self;
+
+    recognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self  action:@selector(rightSwipe:)];
+    //recognizer.delegate = self;
     [recognizer setDirection:(UISwipeGestureRecognizerDirectionRight)];
-    [self.tableView addGestureRecognizer:recognizer];
+    [self.tableView addGestureRecognizer:recognizer]; //Enable swipe gestures
     
-    [_sensorTab setTableFooterView:[[UIView alloc] initWithFrame:CGRectZero]];
-    // Do any additional setup after loading the view, typically from a nib.
+    [_sensorTab setTableFooterView:[[UIView alloc] initWithFrame:CGRectZero]]; //Prevent rendering of empty cells after last filled cell
+    
 }
 
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Deselect row
+    //Cell tap handler
+    
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     
-    // Declare the view controller
     DataViewController *anotherVC = nil;
     anotherVC = [[DataViewController alloc] init ];//]initWithNibName:@"chart" bundle:nil];
     
-    // Get cell textLabel string to use in new view controller title
-    NSString *cellTitleText = [[[tableView cellForRowAtIndexPath:indexPath] textLabel] text];
+    NSString *cellTitleText = [[[tableView cellForRowAtIndexPath:indexPath] textLabel] text]; //Pass title to Data VC
     _selectedSensor =cellTitleText;
-    // Set title indicating what row/section was tapped
-    [anotherVC setTitle:[NSString stringWithFormat:@"You tapped section: %ld - row: %ld - Cell Text: %@" ,(long)indexPath.section, (long)indexPath.row, cellTitleText]];
+    //[anotherVC setTitle:[NSString stringWithFormat:@"You tapped section: %ld - row: %ld - Cell Text: %@" ,(long)indexPath.section, (long)indexPath.row, cellTitleText]]; //Set title of new VC
     
     [anotherVC setModalPresentationStyle:UIModalPresentationFormSheet];
     [anotherVC setModalTransitionStyle:UIModalTransitionStylePartialCurl];
     
-    if(indexPath.row == 2)
+    if(indexPath.row == 2) //Locations segue to map view, everything else segues to a chart view (for now)
         [self performSegueWithIdentifier:@"mapPreview" sender:self];
     else
         [self performSegueWithIdentifier:@"chartPreview" sender:self];
-    //[self.navigationController presentViewController:anotherVC animated:YES completion:NULL];
     
 }
 
@@ -80,30 +75,38 @@
 
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    //Cell init and update handler
+    
     static NSString *CellIdentifier =@"sensorCell";
-    
-    
     UITableViewCell *cell = [tableView
                              dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
     
+    //Set cell shape and color: gradient :-)
+    //CAGradientLayer *gradient = [CAGradientLayer layer];
+    //gradient.frame = cell.bounds;
+    //gradient.colors = [NSArray arrayWithObjects:(id)[[UIColor whiteColor]CGColor], (id)[[_currentColors objectAtIndex:indexPath.row]CGColor], nil];
+   // [cell.layer insertSublayer:gradient atIndex:0];
+    //[cell.layer addSublayer:gradient];
     
-    cell.textLabel.text = [self.sensors objectAtIndex:indexPath.row];
-    cell.textLabel.backgroundColor = [UIColor clearColor];
-    cell.textLabel.font = [UIFont fontWithName:@"Arial" size:24];
-    [cell setBackgroundColor:[self.currentColors objectAtIndex:indexPath.row]];
-    [cell.layer setCornerRadius:7.0f];
+    [cell.layer setBorderColor:(__bridge CGColorRef _Nullable)([UIColor blackColor])];
+    [cell setBackgroundColor:[_currentColors objectAtIndex:indexPath.row]];
+    [cell.layer setCornerRadius:10.0f];
     [cell.layer setMasksToBounds:YES];
     [cell.layer setBorderWidth:2.0f];
-   // cell.backgroundView = [[UIImageView alloc] initWithImage:[
-   //                                                           [[self.sensors objectAtIndex:indexPath.row] objectForKey:@"Image"]
-   //                                                           stretchableImageWithLeftCapWidth:0.0 topCapHeight:5.0] ];
+    
+    //Set cell text
+    cell.textLabel.text = [_sensorTitles objectAtIndex:indexPath.row];
+    cell.textLabel.backgroundColor = [UIColor clearColor];
+    cell.textLabel.font = [UIFont fontWithName:@"Courier" size:24];
+    cell.textLabel.textColor = [UIColor blackColor];
+    
     
     return cell;
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
 {
-    // Make sure your segue name in storyboard is the same as this line
+    //Handle segues to Map and Graph views
     if (([[segue identifier] isEqualToString:@"mapPreview"]) ||
         ([[segue identifier] isEqualToString:@"chartPreview"]) )
     {
@@ -116,28 +119,27 @@
 {
     //Turn off
     CGPoint location = [gestureRecognizer locationInView:self.tableView];
-    NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:location];
+    NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:location]; //Get which cell was swiped
     if([[_sensorStates objectAtIndex:indexPath.row] boolValue])
     {
-        [_currentColors replaceObjectAtIndex:indexPath.row withObject:[UIColor colorWithRed:.5 green:.5 blue:.5 alpha:1]];
-        [_sensorTab reloadRowsAtIndexPaths:[NSArray arrayWithObjects:indexPath,nil] withRowAnimation:UITableViewRowAnimationLeft];
+        [_currentColors replaceObjectAtIndex:indexPath.row withObject:[UIColor colorWithRed:.5 green:.5 blue:.5 alpha:1]];//Set color to gray
+        [_sensorTab reloadRowsAtIndexPaths:[NSArray arrayWithObjects:indexPath,nil] withRowAnimation:UITableViewRowAnimationLeft]; //Animate
+        [_sensorStates replaceObjectAtIndex:indexPath.row withObject:[NSNumber numberWithBool:NO]]; //Change state to off
         [self changeSensors:indexPath toMode:NO];
-        [_sensorStates replaceObjectAtIndex:indexPath.row withObject:[NSNumber numberWithBool:NO]];
     }
 }
 
 - (void)rightSwipe:(UISwipeGestureRecognizer *)gestureRecognizer
 {
-    //Turn on
-    
+    //Turn on sensor
     CGPoint location = [gestureRecognizer locationInView:self.tableView];
-    NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:location];
+    NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:location]; //Get which cell was swiped
     if(![[_sensorStates objectAtIndex:indexPath.row] boolValue])
     {
-        [_currentColors replaceObjectAtIndex:indexPath.row withObject:[self.onColors objectAtIndex:indexPath.row]];
-        [_sensorTab reloadRowsAtIndexPaths:[NSArray arrayWithObjects:indexPath,nil] withRowAnimation:UITableViewRowAnimationRight];
+        [_currentColors replaceObjectAtIndex:indexPath.row withObject:[_onColors objectAtIndex:indexPath.row]]; //Turn color "on"
+        [_sensorTab reloadRowsAtIndexPaths:[NSArray arrayWithObjects:indexPath,nil] withRowAnimation:UITableViewRowAnimationRight]; //Animate
+        [_sensorStates replaceObjectAtIndex:indexPath.row withObject:[NSNumber numberWithBool:YES]]; //Change state to on
         [self changeSensors:indexPath toMode:YES];
-        [_sensorStates replaceObjectAtIndex:indexPath.row withObject:[NSNumber numberWithBool:YES]];
     }
 }
 
@@ -178,12 +180,19 @@
         case 2:
         {
             //activity, location
-            [[app sensorManager] performSelector:changeMode withObject:@"Activity"];
+            
             [[app sensorManager] performSelector:changeMode withObject:@"Location"];
-            [[app sensorManager] performSelector:changeMode withObject:@"Pedometer"];
+            
             break;
         }
         case 3:
+        {
+            //activity
+            [[app sensorManager] performSelector:changeMode withObject:@"Activity"];
+            [[app sensorManager] performSelector:changeMode withObject:@"Pedometer"];
+            break;
+        }
+        case 4:
         {
             //ambient sound and light
             [[app sensorManager] performSelector:changeMode withObject:@"AmbientNoise"];
@@ -204,12 +213,12 @@
 
 - (NSInteger) numberOfRowsInSection:(NSInteger)section
 {
-    return [self.sensors count];
+    return [_sensorTitles count];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return [self.sensors count];
+    return [_sensorTitles count];
 }
 
 - (NSString *) getSensorCellDataByName:(NSString *)sensorName

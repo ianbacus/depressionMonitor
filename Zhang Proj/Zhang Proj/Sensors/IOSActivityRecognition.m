@@ -140,13 +140,13 @@
         int activityVal = 0;
         if([[obj valueForKey:@"stateVal"] containsString:@"Stationary"])
             activityVal = 0;
-        if([[obj valueForKey:@"stateVal"] isEqualToString:@"Walking"])
+        else if([[obj valueForKey:@"stateVal"] containsString:@"Walking"])
             activityVal = 1;
-        if([[obj valueForKey:@"stateVal"] containsString:@"Running"])
+        else if([[obj valueForKey:@"stateVal"] containsString:@"Running"])
             activityVal = 2;
-        if([[obj valueForKey:@"stateVal"] isEqualToString:@"Cycling"])
+        else if([[obj valueForKey:@"stateVal"] containsString:@"Cycling"])
             activityVal = 3;
-        if([[obj valueForKey:@"stateVal"] containsString:@"Driving"])
+        else if([[obj valueForKey:@"stateVal"] containsString:@"Driving"])
             activityVal = 4;
         else continue;
         

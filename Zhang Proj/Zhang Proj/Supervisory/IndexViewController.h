@@ -15,12 +15,11 @@
 
 @property (strong, nonatomic) IBOutlet UITableView *sensorTab;
 @property NSString* selectedSensor;
-@property (nonatomic,strong) NSArray *sensors;
+@property (nonatomic,strong) NSArray *sensorTitles;
 @property NSArray *onColors;
 @property NSMutableArray *currentColors;
 @property NSMutableArray *sensorStates;
 
-@property UIColor* onColor;
 
 
 @end

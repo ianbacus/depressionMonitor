@@ -27,6 +27,8 @@
                                        andContext:[app managedObjectContext]];
     _sensorManager = [[SensorManager alloc] initSensorManagerWithDBManager:_dbManager];
     assert(_sensorManager);
+    
+    
     [_sensorManager startPeriodicCollectionWithInterval:8];
     
     return YES;

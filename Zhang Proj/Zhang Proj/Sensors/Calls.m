@@ -86,9 +86,26 @@
     for(int dataIndex=0;dataIndex<[dbData count]; dataIndex++)
     {
         id obj = [dbData objectAtIndex:dataIndex];
-        NSString *dataStr = [obj valueForKey:@"stateVal"];
+        //"containsString" only supported after iOS7
         
-        [ret addObject:dataStr];
+        int callVal = 0;
+        if([[obj valueForKey:@"stateVal"] containsString:@"Incoming"])
+            callVal = 0;
+        if([[obj valueForKey:@"stateVal"] isEqualToString:@"Connected"])
+            callVal = 1;
+        if([[obj valueForKey:@"stateVal"] containsString:@"Dialing"])
+            callVal = 2;
+        if([[obj valueForKey:@"stateVal"] isEqualToString:@"Disconnected"])
+            callVal = 3;
+        else continue;
+        
+        NSNumber* callNum =  [[NSNumber alloc ] initWithInt:callVal];
+        NSDictionary *datum = [[NSDictionary alloc] initWithObjectsAndKeys:
+                               [obj valueForKey:@"time"],@"x",
+                               callNum,@"y",
+                               nil
+                               ];
+        [ret addObject:datum ];
     }
     return ret;
 }

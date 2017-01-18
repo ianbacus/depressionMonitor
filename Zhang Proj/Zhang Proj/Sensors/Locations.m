@@ -29,12 +29,12 @@
     if (self) {
         self._name = @"Locations";
         defaultInterval = 10; // seconds
-        defaultAccuracy = 1; // meters
+        defaultAccuracy = 10; // meters
         self.dataTable = [[NSMutableDictionary alloc] init];
         if (locationManager == nil){
             locationManager = [[CLLocationManager alloc] init];
             locationManager.delegate = self;
-            locationManager.pausesLocationUpdatesAutomatically = NO;
+            //locationManager.pausesLocationUpdatesAutomatically = NO;
             
             CGFloat currentVersion = [[[UIDevice currentDevice] systemVersion] floatValue];
             if (currentVersion >= 9.0)
@@ -87,8 +87,9 @@
     }
     
     // Set a movement threshold for new events.
-    locationManager.distanceFilter = accuracyMeter; // meter
-    return YES;
+    //locationManager.distanceFilter = accuracyMeter; // meter
+    locationManager.distanceFilter = kCLDistanceFilterNone;
+    return YES; 
 }
 
 - (BOOL)startSensorWithInterval:(double)interval accuracy:(double)accuracyMeter
@@ -127,10 +128,13 @@
 }
 
 - (void) locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray<CLLocation *> *)locations{
+    [self saveLocation:[locations lastObject]];
+    /*
     for (CLLocation* location in locations)
     {
         [self saveLocation:location];
     }
+    */
 }
 
 - (void) saveLocation:(CLLocation *)location

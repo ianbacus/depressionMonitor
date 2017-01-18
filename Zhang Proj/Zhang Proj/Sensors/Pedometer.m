@@ -20,6 +20,7 @@
     self = [super init];
     if(self)
     {
+        self._name = @"Pedometer";
         if (!_pedoMeter) {
             _pedoMeter = [[CMPedometer alloc]init];
         }
