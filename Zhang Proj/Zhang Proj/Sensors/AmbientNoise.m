@@ -344,9 +344,15 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
     for(int dataIndex=0;dataIndex<[dbData count]; dataIndex++)
     {
         id obj = [dbData objectAtIndex:dataIndex];
-        NSString *dataStr = [obj valueForKey:@"stateVal"];
-        
-        [ret insertObject:dataStr atIndex:dataIndex];
+        //0:dB,1:RMS,2:Frequency
+        NSNumber* dB =  [[NSNumber alloc ] initWithDouble:
+                         [[[obj valueForKey:@"stateVal"] componentsSeparatedByString:@","][0] doubleValue] ];
+        NSDictionary *datum = [[NSDictionary alloc] initWithObjectsAndKeys:
+                               [obj valueForKey:@"time"],@"x",
+                               dB,@"y",
+                               nil
+                               ];
+        [ret addObject:datum];
     }
     return ret;
 }

@@ -103,5 +103,29 @@
     });
 }
 
+-(NSArray*) createDataSetFromDBData:(NSArray*)dbData
+{
+    NSMutableArray *ret = [[NSMutableArray alloc] init];
+    for(int dataIndex=0;dataIndex<[dbData count]; dataIndex++)
+    {
+        id obj = [dbData objectAtIndex:dataIndex];
+        int screenVal = 0;
+        if([[obj valueForKey:@"stateVal"] isEqualToString:@"Off"])
+            screenVal = 0;
+        if([[obj valueForKey:@"stateVal"] isEqualToString:@"On"])
+            screenVal = 1;
+        else continue;
+        
+        NSNumber* screenState =  [[NSNumber alloc ] initWithInt:screenVal];
+        NSDictionary *datum = [[NSDictionary alloc] initWithObjectsAndKeys:
+                               [obj valueForKey:@"time"],@"x",
+                               screenState,@"y",
+                               nil
+                               ];
+        [ret addObject:datum];
+    }
+    return ret;
+}
+
 
 @end

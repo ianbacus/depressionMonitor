@@ -49,9 +49,12 @@
     for(int dataIndex=0;dataIndex<[dbData count]; dataIndex++)
     {
         id obj = [dbData objectAtIndex:dataIndex];
-        NSString *dataStr = [obj valueForKey:@"stateVal"];
-        
-        [ret insertObject:dataStr atIndex:dataIndex];
+        NSDictionary *datum = [[NSDictionary alloc] initWithObjectsAndKeys:
+                               [obj valueForKey:@"time"],@"x",
+                               [[NSNumber alloc ] initWithDouble:[[obj valueForKey:@"stateVal"] doubleValue]],@"y",
+                               nil
+                               ];
+        [ret addObject:datum];
     }
     return ret;
 }

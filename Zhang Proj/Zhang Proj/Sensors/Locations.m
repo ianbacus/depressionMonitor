@@ -154,8 +154,9 @@
         id obj = [dbData objectAtIndex:dataIndex];
         NSString *dataStr = [obj valueForKey:@"stateVal"];
         NSArray* gpsLoc = [dataStr  componentsSeparatedByString:@","];
-        
-        CLLocation *point = [[CLLocation alloc] initWithLatitude:[gpsLoc[0] floatValue] longitude:[gpsLoc[1] floatValue]];
+        double latitude = [gpsLoc[0] floatValue];
+        double longitude = [gpsLoc[1] floatValue];
+        CLLocation *point = [[CLLocation alloc] initWithLatitude:latitude longitude:longitude];
         [ret insertObject:point atIndex:dataIndex];
     }
     return ret;

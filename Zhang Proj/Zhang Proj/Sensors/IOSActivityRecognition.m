@@ -135,9 +135,28 @@
     for(int dataIndex=0;dataIndex<[dbData count]; dataIndex++)
     {
         id obj = [dbData objectAtIndex:dataIndex];
-        NSString *dataStr = [obj valueForKey:@"stateVal"];
+        //"containsString" only supported after iOS7
         
-        [ret insertObject:dataStr atIndex:dataIndex];
+        int activityVal = 0;
+        if([[obj valueForKey:@"stateVal"] containsString:@"Stationary"])
+            activityVal = 0;
+        if([[obj valueForKey:@"stateVal"] isEqualToString:@"Walking"])
+            activityVal = 1;
+        if([[obj valueForKey:@"stateVal"] containsString:@"Running"])
+            activityVal = 2;
+        if([[obj valueForKey:@"stateVal"] isEqualToString:@"Cycling"])
+            activityVal = 3;
+        if([[obj valueForKey:@"stateVal"] containsString:@"Driving"])
+            activityVal = 4;
+        else continue;
+        
+        NSNumber* activtyNum =  [[NSNumber alloc ] initWithInt:activityVal];
+        NSDictionary *datum = [[NSDictionary alloc] initWithObjectsAndKeys:
+                               [obj valueForKey:@"time"],@"x",
+                               activtyNum,@"y",
+                               nil
+                               ];
+        [ret addObject:datum ];
     }
     return ret;
 }

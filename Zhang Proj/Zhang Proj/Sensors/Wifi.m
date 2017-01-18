@@ -2,9 +2,10 @@
 //  Wifi.m
 //  AWARE
 //
-//  Created by Yuuki Nishiyama on 11/20/15.
-//  Copyright © 2015 Yuuki NISHIYAMA. All rights reserved.
+//  Created by Ian Bacus on 12/20/16.
+//  Copyright © 2016 Ian Bacus. All rights reserved.
 //
+//http://www.heapoverflow.me/question-how-to-get-wifi-ssid-in-ios9-after-captivenetwork-is-depracted-and-calls-for-wif-31555640
 
 #import "Sensor.h"
 #import "Wifi.h"
@@ -74,8 +75,7 @@
     //[self broadcastRequestScan];
     //[self broadcastScanStarted];
     
-    // Get wifi information
-    //http://www.heapoverflow.me/question-how-to-get-wifi-ssid-in-ios9-after-captivenetwork-is-depracted-and-calls-for-wif-31555640
+    
     bool ret = nil;
     NSArray *ifs = (__bridge_transfer id)CNCopySupportedInterfaces();
     for (NSString *ifnam in ifs) {
@@ -99,14 +99,11 @@
             }else if(element.length == 2){
                 [finalBSSID appendString:[NSString stringWithFormat:@"%@:",element]];
             }else{
-                //            NSLog(@"error");
             }
         }
         if (finalBSSID.length > 0) {
-            //        NSLog(@"%@",finalBSSID);
             [finalBSSID deleteCharactersInRange:NSMakeRange([finalBSSID length]-1, 1)];
         } else{
-            //        NSLog(@"error");
         }
         
         NSString* wifiString;
@@ -175,16 +172,16 @@
             }
         }
     }
-    
-    return [cset countForObject:@"awdl0"] > 1 ? YES : NO;
+    if(cset != nil)
+        return [cset countForObject:@"awdl0"] > 1 ? YES : NO;
+    else
+        return NO;
 }
 
 - (NSDictionary *) wifiDetails {
     return
     (__bridge NSDictionary *)
-        CNCopyCurrentNetworkInfo(
-                                 CFArrayGetValueAtIndex( CNCopySupportedInterfaces(), 0)
-                                 );
+        CNCopyCurrentNetworkInfo(CFArrayGetValueAtIndex( CNCopySupportedInterfaces(), 0));
 }
 
 

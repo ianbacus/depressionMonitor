@@ -21,47 +21,74 @@
 @synthesize selectedSensor = _selectedSensor;
 
 
--(void) setupLineChart2
+-(void) setup2LineChart
 {
+    
     _chartView.delegate = self;
     
     _chartView.chartDescription.enabled = NO;
     
+    _chartView.leftAxis.enabled = NO;
+    _chartView.rightAxis.drawAxisLineEnabled = NO;
+    _chartView.rightAxis.drawGridLinesEnabled = NO;
+    _chartView.xAxis.drawAxisLineEnabled = NO;
+    _chartView.xAxis.drawGridLinesEnabled = NO;
+    
+    _chartView.drawGridBackgroundEnabled = NO;
+    _chartView.drawBordersEnabled = NO;
     _chartView.dragEnabled = YES;
     [_chartView setScaleEnabled:YES];
     _chartView.pinchZoomEnabled = NO;
-    _chartView.drawGridBackgroundEnabled = YES;
-    _chartView.highlightPerDragEnabled = YES;
     
-    _chartView.backgroundColor = UIColor.whiteColor;
+    ChartLegend *l = _chartView.legend;
+    l.horizontalAlignment = ChartLegendHorizontalAlignmentRight;
+    l.verticalAlignment = ChartLegendVerticalAlignmentTop;
+    l.orientation = ChartLegendOrientationVertical;
+    l.drawInside = NO;
     
-    _chartView.legend.enabled = NO;
-    
-    ChartXAxis *xAxis = _chartView.xAxis;
-    xAxis.labelPosition = XAxisLabelPositionTopInside;
-    xAxis.labelFont = [UIFont fontWithName:@"HelveticaNeue-Light" size:10.f];
-    xAxis.labelTextColor = [UIColor colorWithRed:255/255.0 green:192/255.0 blue:56/255.0 alpha:1.0];
-    xAxis.drawAxisLineEnabled = YES;
-    xAxis.drawGridLinesEnabled = YES;
-    xAxis.centerAxisLabelsEnabled = YES;
-    xAxis.granularity = 3600.0;
-    //  xAxis.valueFormatter = [[DateValueFormatter alloc] init];
-    
-    ChartYAxis *leftAxis = _chartView.leftAxis;
-    leftAxis.labelPosition = YAxisLabelPositionInsideChart;
-    leftAxis.labelFont = [UIFont fontWithName:@"HelveticaNeue-Light" size:12.f];
-    leftAxis.labelTextColor = [UIColor colorWithRed:51/255.0 green:181/255.0 blue:229/255.0 alpha:1.0];
-    leftAxis.drawGridLinesEnabled = YES;
-    leftAxis.granularityEnabled = YES;
-    leftAxis.axisMinimum = 0.0;
-    leftAxis.axisMaximum = 170.0;
-    leftAxis.yOffset = -9.0;
-    leftAxis.labelTextColor = [UIColor colorWithRed:255/255.0 green:192/255.0 blue:56/255.0 alpha:1.0];
-    
-    _chartView.rightAxis.enabled = YES;
-    
-    _chartView.legend.form = ChartLegendFormLine;
 }
+
+
+- (void)renderTodaysDataForTimeKey:(NSString*)timeKey
+{
+    //length of dataset
+    int count = 10;
+    //random range
+    double range = 20;
+    NSArray *colors = @[ChartColorTemplates.vordiplom[0], ChartColorTemplates.vordiplom[1], ChartColorTemplates.vordiplom[2]];
+
+    NSMutableArray *dataSets = [[NSMutableArray alloc] init];
+    
+    NSArray *dataCopy = _todaysData[timeKey];
+    
+    for(int z=0; z<[dataCopy count]; z++ )
+    {
+        NSArray* singlePlot = [dataCopy objectAtIndex:z];
+        NSMutableArray* values = [[NSMutableArray alloc] init];
+        for(int singlePlotIndex=0;singlePlotIndex<[singlePlot count]; singlePlotIndex++)
+        {
+            NSTimeInterval secondsBetween = [ [singlePlot objectAtIndex:singlePlotIndex][@"x"] timeIntervalSinceDate:_timeBoundaries[timeKey]];
+            [values addObject:[[ChartDataEntry alloc] initWithX:secondsBetween
+                                                              y: [[singlePlot objectAtIndex:singlePlotIndex][@"y"] doubleValue ]]];
+        }
+        
+        LineChartDataSet *d = [[LineChartDataSet alloc] initWithValues:values label:[NSString stringWithFormat:@"DataSet %d", z + 1]];
+        d.lineWidth = 2.5;
+        d.circleRadius = 4.0;
+        d.circleHoleRadius = 2.0;
+        
+        UIColor *color = colors[z % colors.count];
+        [d setColor:color];
+        [d setCircleColor:color];
+        [dataSets addObject:d];
+    }
+    
+    
+    LineChartData *data = [[LineChartData alloc] initWithDataSets:dataSets];
+    [data setValueFont:[UIFont fontWithName:@"HelveticaNeue-Light" size:7.f]];
+    _chartView.data = data;
+}
+
 
 -(void) setupLineChart
 {
@@ -156,6 +183,28 @@
     }
 }
 
+-(void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item
+{
+    long selectedTag=item.tag;
+    
+    switch(selectedTag)
+    {
+        case 0://morning
+            [self drawRoute:_todaysData[@"Morning"]];
+            break;
+        case 1://afternoon
+             [self drawRoute:_todaysData[@"Afternoon"]];
+            break;
+        case 2://evening
+             [self drawRoute:_todaysData[@"Evening"]];
+            break;
+        case 3://night
+             [self drawRoute:_todaysData[@"Night"]];
+            break;
+        case 4://full day
+            break;
+    }
+}
 
 - (void) drawRoute:(NSArray *) path
 {
@@ -176,28 +225,110 @@
     
 }
 
+- (MKOverlayRenderer *)mapView:(MKMapView *)mapView rendererForOverlay:(id<MKOverlay>)overlay
+{
+    if ([overlay isKindOfClass:[MKPolyline class]]) {
+        MKPolyline *route = overlay;
+        @try {
+            
+            MKPolylineRenderer *routeRenderer = [[MKPolylineRenderer alloc] initWithPolyline:route];
+            routeRenderer.strokeColor = [UIColor colorWithRed:20/255.0 green:153/255.0 blue:255/255.0 alpha:1.0];
+            routeRenderer.lineWidth = 3;
+            [routeRenderer setNeedsDisplay];
+            return routeRenderer;
+        }
+        @catch (NSException *exception) {
+            NSLog(@"exception :%@",exception.debugDescription);
+        }
+        
+    }
+    else return nil;
+}
+
+
+- (void) appendTodaysDataForSensor:(NSString*)sensorName
+{
+    AppDelegate * app = (AppDelegate*) [[UIApplication sharedApplication] delegate];
+    //beginning of boundaries stored in timeBoundaries
+    
+    
+    [_todaysData [@"Night"] addObject: [[app sensorManager] createDataSetForSensor:sensorName
+                                fromStartDate:_timeBoundaries[@"Night"]
+                                toEndDate:_timeBoundaries[@"Morning"]]];
+    
+    [_todaysData [@"Morning"]  addObject:[[app sensorManager] createDataSetForSensor:sensorName
+                                fromStartDate:_timeBoundaries[@"Morning"]
+                                toEndDate:_timeBoundaries[@"Afternoon"]]];
+
+    
+    [_todaysData [@"Afternoon"] addObject: [[app sensorManager] createDataSetForSensor:sensorName
+                                fromStartDate:_timeBoundaries[@"Afternoon"]
+                                toEndDate:_timeBoundaries[@"Evening"] ]];
+    
+    
+    [_todaysData [@"Evening"] addObject: [[app sensorManager] createDataSetForSensor:sensorName
+                                fromStartDate:_timeBoundaries[@"Evening"]
+                                toEndDate:[[app sensorManager] getTargetNSDate:[NSDate new] hour:24 minute:0 second:0 nextDay:NO] ]];
+    
+    
+    
+}
+
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    NSString *defaultTimeKey = @"Morning";
+    AppDelegate * app = (AppDelegate*) [[UIApplication sharedApplication] delegate];
+    _timeBoundaries = [[NSDictionary alloc] initWithObjectsAndKeys:
+                       [[app sensorManager] getTargetNSDate:[NSDate new] hour:0 minute:0 second:0 nextDay:NO],@"Night",
+                       [[app sensorManager] getTargetNSDate:[NSDate new] hour:6 minute:0 second:0 nextDay:NO],@"Morning",
+                       [[app sensorManager] getTargetNSDate:[NSDate new] hour:12 minute:0 second:0 nextDay:NO],@"Afternoon",
+                       [[app sensorManager] getTargetNSDate:[NSDate new] hour:18 minute:0 second:0 nextDay:NO],@"Evening",
+                       nil
+                       ];
+    
+    _todaysData = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
+                 [[NSMutableArray alloc] init],@"Morning",
+                    [[NSMutableArray alloc] init],@"Afternoon",
+                    [[NSMutableArray alloc] init],@"Evening",
+                    [[NSMutableArray alloc] init],@"Night",
+                   nil];
+    
     if([_selectedSensor isEqualToString: @"Phone"])
     {
-        [self setupLineChart ];
-        [self setDataCount];
+        [self appendTodaysDataForSensor:@"Screen"];
+        
+        [self setup2LineChart ];
+        [self renderTodaysDataForTimeKey:defaultTimeKey];
     }
     else if([_selectedSensor isEqualToString: @"Social"])
     {
-        [self setupLineChart ];
+        [self appendTodaysDataForSensor:@"Calls"];
+        
+        [self setup2LineChart ];
+        [self renderTodaysDataForTimeKey:defaultTimeKey];
     }
     else if([_selectedSensor isEqualToString:@"Activity"])
     {
-        _mapview.delegate=self;
-        _mapview.showsUserLocation=YES;
-        [_mapview setUserTrackingMode:MKUserTrackingModeFollow animated:YES];
         
+        [_mapview setDelegate:self];
+        [_mapview setShowsUserLocation:YES];
+        [_mapview setUserTrackingMode:MKUserTrackingModeFollow animated:YES];
+        [self appendTodaysDataForSensor:@"Locations"];
+        
+        //[self appendTodaysDataForSensor:@"Locations"];
+        //[self setup2LineChart ];
+        [self drawRoute:[_todaysData[defaultTimeKey] objectAtIndex:0]];
     }
     else if([_selectedSensor isEqualToString:@"Ambience"])
     {
-         [self setupLineChart ];
+        [self appendTodaysDataForSensor:@"AmbientNoise"];
+        [self appendTodaysDataForSensor:@"AmbientLight"];
+        
+        [self setup2LineChart ];
+        [self renderTodaysDataForTimeKey:defaultTimeKey];
     }
     // Do any additional setup after loading the view, typically from a nib.
 }

@@ -40,7 +40,12 @@
 -(void) acceptDataFromSensors;
 -(void) acceptDataFromSensor :(Sensor*)sensor;
 -(void) uploadSensorData;
-
+- (NSDate *) getTargetNSDate:(NSDate *) nsDate
+                        hour:(int) hour
+                      minute:(int) minute
+                      second:(int) second
+                     nextDay:(BOOL)nextDay;
+-(NSArray*) createDataSetForSensor:(NSString*) sensorName fromStartDate:(NSDate *)startDate toEndDate:(NSDate*)endDate;
 -(BOOL) startPeriodicCollectionWithInterval:(float)interval;
 -(BOOL) stopPeriodicCollection;
 -(BOOL) startPeriodicCollectionForSensor:(NSString*)sensorName;

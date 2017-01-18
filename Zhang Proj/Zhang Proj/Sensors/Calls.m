@@ -88,7 +88,7 @@
         id obj = [dbData objectAtIndex:dataIndex];
         NSString *dataStr = [obj valueForKey:@"stateVal"];
         
-        [ret insertObject:dataStr atIndex:dataIndex];
+        [ret addObject:dataStr];
     }
     return ret;
 }

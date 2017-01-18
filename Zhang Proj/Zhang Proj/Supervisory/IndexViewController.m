@@ -9,6 +9,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    self.view.backgroundColor = [[UIColor alloc] initWithRed:0 green:0 blue:0 alpha:1.0];
     self.onColor = [UIColor colorWithRed:(218/256) green:(236/256) blue:(239/256) alpha:1];
     self.onColors = [[NSArray alloc] initWithObjects:
                      [UIColor colorWithRed:.85 green:.92 blue:.93 alpha:1],
@@ -103,7 +104,8 @@
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
 {
     // Make sure your segue name in storyboard is the same as this line
-    if ([[segue identifier] isEqualToString:@"sensorPreview"])
+    if (([[segue identifier] isEqualToString:@"mapPreview"]) ||
+        ([[segue identifier] isEqualToString:@"chartPreview"]) )
     {
         DataViewController *vc = [segue destinationViewController];
         vc.selectedSensor = _selectedSensor;
