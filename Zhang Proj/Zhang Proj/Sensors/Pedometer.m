@@ -40,6 +40,13 @@
     return YES;
 }
 
+
+-(BOOL) changeCollectionInterval:(double)interval
+{
+    [super changeCollectionInterval:interval];
+    return NO;
+}
+
 -(BOOL) stopCollecting
 {
     [super stopCollecting];

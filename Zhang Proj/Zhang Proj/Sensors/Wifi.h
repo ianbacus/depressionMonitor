@@ -14,5 +14,7 @@ extern NSString* const AWARE_PREFERENCES_STATUS_WIFI;
 extern NSString* const AWARE_PREFERENCES_FREQUENCY_WIFI;
 
 @interface Wifi : Sensor
+
+@property NSTimer* dataCollectionTimer;
 - (BOOL) getWifiInfo;
 @end

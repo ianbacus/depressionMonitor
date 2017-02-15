@@ -20,8 +20,19 @@
 #import "AmbientNoise.h"
 #import "Wifi.h"
 #import "Pedometer.h"
+#import "Battery.h"
 
-
+/*
+ Activity
+ Locations
+ Screen
+ Calls
+ AmbientNoise
+ AmbientLight
+ Wifi
+ Battery
+ 
+ */
 
 #ifndef SensorManager_h
 #define SensorManager_h
@@ -29,6 +40,8 @@
 @interface SensorManager : NSObject 
 
 @property DBManager* dbManager;
+@property int batteryTestIndex;
+@property double testRate;
 @property NSDate* startDate;
 @property NSArray* sensorsArray;
 @property NSTimer* dataCollectionTimer;

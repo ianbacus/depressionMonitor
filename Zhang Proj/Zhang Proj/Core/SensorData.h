@@ -20,28 +20,38 @@
 @property (nonatomic, strong) NSString *name;
 @property (nonatomic, strong) NSString *stateVal;
 
-
 @end
 
 
 #endif
 
 /*
+ Entries for all sensors go to the same model. The sensors' data are differentiated by their name.
+ Data is stored as a string with an arbitrary format, each sensor defines methods that convert their values to numeric formats for processing and displaying on a graph
  
- Activity
- - time:activityChange (stationary, walking, running, ...)
+ name: Activity
+ stateVal: activity event with confidence (stationary, walking, running, ...)
  
- Screen
- - time:screenChange (on,off)
+ name: Ambient Light
+ stateVal: screen brightness(0.00 to 1.00)
  
- Social:
- - time:callState (started, ended)
+ name: Ambient Noise
+ stateVal:  decibels
  
- Location
- - time:locationState (gps location)
+ name: Battery
+ stateVal: battery remaining (0.00 to 1.00)
  
- Face
- - time:emotionState (happy, sad)
+ name: Screen
+ stateVal: screenChange (on,off)
+ 
+ name: Social
+ stateVal: call event (connected, disconnected, calling, receiving call)
+ 
+ name: Location
+ stateVal: location state (latitude,longitude,accuracy)
+ 
+ name: Wifi
+ stateVal: SSID, BSSID, or connection state
  
  
  */

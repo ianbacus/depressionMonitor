@@ -11,7 +11,14 @@
 
 
 @implementation SensorManager
+{
+    NSTimer* periodicBatteryTestTimer;
+    NSTimer* sweepSamplingRateTimer;
+}
 
+/*
+ *  Create sensor manager, initialize all sensors currently being used.
+ */
 -(instancetype) initSensorManagerWithDBManager:(DBManager *)dbManager
 {
     self = [super init];
@@ -29,12 +36,16 @@
                                                     [[AmbientNoise alloc] initSensor],           //5: ambient noise
                                                     [[AmbientLight alloc] initSensor],           //6: screen brightness
                                                     [[Wifi alloc] initSensor],                   //7: wifi
+                                                    [[Battery alloc] initSensor],                //8: Battery
                                                         nil];
         
     }
     return self;
 }
 
+/*
+ *  Iterate over sensor array, return reference to sensor specified by name
+ */
 -(Sensor*) getSensorByName:(NSString*)sensorName
 {
     for(Sensor* sensor in _sensorsArray)
@@ -47,6 +58,9 @@
     return nil;
 }
 
+/*
+ *  Safely begin data collection for a sensor
+ */
 - (BOOL) startPeriodicCollectionForSensor:(NSString*)sensorName
 {
     Sensor* sensor = [self getSensorByName:sensorName];
@@ -55,6 +69,9 @@
     return YES;
 }
 
+/*
+ *  Convert a range of database entries for a sensor from strings to numeric values, see the createDataSetFromDBData method for each sensor for more information
+ */
 -(NSArray*) createDataSetForSensor:(NSString*) sensorName fromStartDate:(NSDate *)startDate toEndDate:(NSDate*)endDate
 {
     NSArray* dbData = [_dbManager getDataForSensor:sensorName fromStartDate:startDate toEndDate:endDate];
@@ -62,19 +79,25 @@
     return [sensor createDataSetFromDBData:dbData];
 }
 
+/*
+ *  Begin collecting data from all sensors. At the specified interval, flush the data of each sensor into the database
+ */
 -(BOOL) startPeriodicCollectionWithInterval:(float) interval
 {
-    //Make all sensors begin collecting data. On specified interval, flush the data of each sensor into the database
     [self activate];
     _dataCollectionTimer = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(acceptDataFromSensors) userInfo:nil repeats:YES];
-    _dailyUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:160 target:self selector:@selector(dailySync) userInfo:nil repeats:YES];
+    
     for (Sensor* sensor in _sensorsArray)
     {
         [sensor startCollecting];
     }
+    
     return YES;
 }
 
+/*
+ *  Stop data collection for sensors, stop flushing data to database
+ */
 -(BOOL) stopPeriodicCollection
 {
     [self deactivate];
@@ -87,17 +110,29 @@
     return YES;
 }
 
+/*
+ *  Stop data collection for one sensor, given by its name
+ */
 - (BOOL) stopPeriodicCollectionForSensor:(NSString*)sensorName
 {
     Sensor* sensor = [self getSensorByName:sensorName];
-    if(![sensor isCollecting])
+    if([sensor isCollecting])
     {
         [sensor stopCollecting];
     }
     return YES;
 }
 
+- (BOOL) setSamplingIntervalForSensor:(NSString*) sensorName toRate:(double)collectionRate
+{
+    Sensor* sensor = [self getSensorByName:sensorName];
+    [sensor changeCollectionInterval:collectionRate];
+    return YES;
+}
 
+/*
+ *  Upload sensor data
+ */
 -(void) uploadSensorData
 {
     for (Sensor* sensor in _sensorsArray)
@@ -113,10 +148,11 @@
     _startDate = [NSDate new];
 }
 
-
+/*
+ *  Store data for all sensors into database
+ */
 -(void) acceptDataFromSensors
 {
-    //Delete local copy of data (dictionaries maintained for each sensor), store them in the SQLite database
     for (Sensor* sensor in _sensorsArray)
     {
         if([sensor hasData])
@@ -127,16 +163,19 @@
     
 }
 
+/*
+ *  Empty local store for a sensor, store it in core database
+ */
 -(void) acceptDataFromSensor:(Sensor *)sensor
 {
-    //Delete local copy of data (dictionaries maintained for each sensor), store them in the SQLite database
     [_dbManager saveData:[sensor flushData]
                   forSensor:[sensor _name]];
-    
 }
 
 //////
-
+/*
+ *  Return an NSDate object for some input time value
+ */
 - (NSDate *) getTargetNSDate:(NSDate *) nsDate
                         hour:(int) hour
                       minute:(int) minute
@@ -159,7 +198,6 @@
     [dateComps setMinute:minute];
     [dateComps setSecond:second];
     NSDate * targetNSDate = [calendar dateFromComponents:dateComps];
-    //    return targetNSDate;
     
     if (nextDay)
     {
@@ -175,7 +213,9 @@
     }
 }
 
-
+/*
+ *  Activate the sensor manager background mode
+ */
 - (void) activate
 {
     [self deactivate];
@@ -187,7 +227,7 @@
     [self initLocationSensor];
     
     /// Set a timer for a daily sync update with specific time
-    /*
+    
     NSDate* dailyUpdateTime = [self getTargetNSDate:[NSDate new] hour:2 minute:0 second:0 nextDay:YES]; //2AM
     _dailyUpdateTimer = [[NSTimer alloc] initWithFireDate:dailyUpdateTime
                                                  interval:60*60*24 // daily
@@ -199,8 +239,8 @@
     //_dailyUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:10 target:self selector:@selector(dailySync) userInfo:nil repeats:YES];
     NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
     [runLoop addTimer:_dailyUpdateTimer forMode:NSRunLoopCommonModes];
-    */
     
+    /*
     // Battery Save Mode
     CGFloat currentVersion = [[[UIDevice currentDevice] systemVersion] floatValue];
     if (currentVersion >= 9.0){
@@ -213,14 +253,12 @@
                                                    object:nil];
     }
     
-    // battery state trigger
-    // Set a battery state change event to a notification center
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(changedBatteryState:)
-                                                 name:UIDeviceBatteryStateDidChangeNotification object:nil];
-    
+    */
 }
 
+/*
+ *  Flush sensor data into database,
+ */
 -(void) dailySync
 {
     //perform daily sync operation: reset all sensor and process data
@@ -231,19 +269,11 @@
     }
 }
 
--(void) checkCompliance
-{
-    
-}
 
-- (void) changedBatteryState:(id) sender
-{
-    NSInteger batteryState = [UIDevice currentDevice].batteryState;
-    if (batteryState == UIDeviceBatteryStateCharging || batteryState == UIDeviceBatteryStateFull) {
-        NSLog(@"Battery is charging or full.");
-    }
-}
 
+/*
+ *  disable background mode
+ */
 - (void) deactivate{
     //[_sharedSensorManager stopAndRemoveAllSensors];
     [_sharedLocationManager stopUpdatingLocation];
@@ -261,6 +291,9 @@
 ////////////////////////////////////////////////////////////////////////////////////
 
 
+/*
+ *  Allow background data collection by enabling location sensor
+ */
 - (void) initLocationSensor
 {
     //Set up location sensor for background updates
@@ -311,6 +344,9 @@
 }
 
 
+
+
+
 + (BOOL)isForeground{
     UIApplicationState appState = [[UIApplication sharedApplication] applicationState];
     switch (appState) {
@@ -345,7 +381,115 @@
             return NO;
     }
 }
-/////
+///// Power consumption profiling
 
+/*
+ 
+ //Call every 2 hours
+ -(void) sweepSamplingRate
+ {
+ //tear sensors down, restart them with specified interval
+ //change sampling interval mid collection
+ _testRate *= 2;
+ NSLog(@"Beginning experiment with %f",_testRate);
+ //if(_batteryTestIndex == 0)
+ {
+ [self setSamplingIntervalForSensor:@"AmbientLight" toRate:_testRate];
+ [self setSamplingIntervalForSensor:@"Screen" toRate:_testRate];
+ [self setSamplingIntervalForSensor:@"Wifi" toRate:_testRate];
+ }
+ //else if(_batteryTestIndex <= 4)
+ {
+ [self setSamplingIntervalForSensor:@"AmbientNoise" toRate:_testRate];
+ [(AmbientNoise*)[self getSensorByName:@"AmbientNoise" ]  changeDutyCycle:.5];
+ }
+ //else if(_batteryTestIndex == 5)
+ {
+ [self setSamplingIntervalForSensor:@"Activity" toRate:_testRate];
+ [self setSamplingIntervalForSensor:@"Pedometer" toRate:_testRate];
+ }
+ //else if(_batteryTestIndex == 6)
+ {
+ [self setSamplingIntervalForSensor:@"Locations" toRate:_testRate];
+ }
+ 
+ 
+ }
+ 
+ 
+ //Call every 6 hours
+ - (void) periodicBatteryTest
+ {
+ _testRate = 20;
+ if(_batteryTestIndex == 0)
+ {
+ [self stopPeriodicCollectionForSensor:@"Locations"];
+ 
+ [self startPeriodicCollectionForSensor:@"AmbientLight"];
+ [self startPeriodicCollectionForSensor:@"Screen"];
+ [self startPeriodicCollectionForSensor:@"Wifi"];
+ }
+ else if(_batteryTestIndex == 1)
+ {
+ [self stopPeriodicCollectionForSensor:@"AmbientLight"];
+ [self stopPeriodicCollectionForSensor:@"Screen"];
+ [self stopPeriodicCollectionForSensor:@"Wifi"];
+ 
+ [self startPeriodicCollectionForSensor:@"AmbientNoise"];
+ }
+ else if(_batteryTestIndex == 2)
+ {
+ [(AmbientNoise*)[self getSensorByName:@"AmbientNoise" ] changeSamplingRate:8000 ];
+ }
+ else if(_batteryTestIndex == 3)
+ {
+ [(AmbientNoise*)[self getSensorByName:@"AmbientNoise" ] changeSamplingRate:16000 ];
+ }
+ else if(_batteryTestIndex == 4)
+ {
+ [(AmbientNoise*)[self getSensorByName:@"AmbientNoise" ] changeSamplingRate:48000 ];
+ }
+ else if(_batteryTestIndex == 5)
+ {
+ [self stopPeriodicCollectionForSensor:@"AmbientNoise"];
+ 
+ [self startPeriodicCollectionForSensor:@"Activity"];
+ [self startPeriodicCollectionForSensor:@"Pedometer"];
+ }
+ else if(_batteryTestIndex == 6)
+ {
+ [self stopPeriodicCollectionForSensor:@"Activity"];
+ [self stopPeriodicCollectionForSensor:@"Pedometer"];
+ 
+ [self startPeriodicCollectionForSensor:@"Locations"];
+ }
+ 
+ _batteryTestIndex+=1;
+ 
+ }
+ 
+ //Eveyr 6 hours, change the active sensors and store the test results
+ - (void) initBatteryTest
+ {
+ _batteryTestIndex = 0;
+ _testRate = 5;
+ [_dbManager deleteAllDataForSensor:@"Battery"];
+ periodicBatteryTestTimer = [NSTimer scheduledTimerWithTimeInterval:60*60*6
+ target:self
+ selector:@selector(periodicBatteryTest)
+ userInfo:nil
+ repeats:YES];
+ 
+ sweepSamplingRateTimer = [NSTimer scheduledTimerWithTimeInterval:60*60*2
+ target:self
+ selector:@selector(sweepSamplingRate)
+ userInfo:nil
+ repeats:YES];
+ [periodicBatteryTestTimer fire];
+ [sweepSamplingRateTimer fire];
+ [self startPeriodicCollectionForSensor:@"Battery"];
+ 
+ }
 
+ */
 @end

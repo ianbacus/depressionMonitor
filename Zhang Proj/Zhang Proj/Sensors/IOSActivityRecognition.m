@@ -24,6 +24,8 @@
         self._name = @"Activity";
         if([CMMotionActivityManager isActivityAvailable])
             motionActivityManager = [[CMMotionActivityManager alloc] init];
+        
+        
         confidenceFilter = CMMotionActivityConfidenceLow;
     }
     return self;
@@ -60,13 +62,13 @@
     switch(motionActivity.confidence)
     {
         case CMMotionActivityConfidenceLow:
-            activityStr = [NSMutableString stringWithString:@"Could be "];
+            activityStr = [NSMutableString stringWithString:@"0"]; //9
             break;
         case CMMotionActivityConfidenceHigh:
-            activityStr =  [NSMutableString stringWithString:@"Definitely "];
+            activityStr =  [NSMutableString stringWithString:@"1"]; //11
             break;
         case CMMotionActivityConfidenceMedium:
-            activityStr = [NSMutableString stringWithString:@"Probably "];
+            activityStr = [NSMutableString stringWithString:@"2"]; //8
             break;
     }
     if (motionActivity.unknown)
@@ -117,6 +119,12 @@
     
     
     return YES;
+}
+
+-(BOOL) changeCollectionInterval:(double)interval
+{
+    [super changeCollectionInterval:interval];
+    return NO;
 }
 
 -(BOOL) stopCollecting

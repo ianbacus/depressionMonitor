@@ -71,6 +71,11 @@
     return YES;
 }
 
+-(BOOL) changeCollectionInterval:(double)interval
+{
+    [super changeCollectionInterval:interval];
+    return YES;
+}
 
 -(BOOL) stopCollecting
 {
@@ -88,15 +93,15 @@
         id obj = [dbData objectAtIndex:dataIndex];
         //"containsString" only supported after iOS7
         
-        int callVal = 0;
-        if([[obj valueForKey:@"stateVal"] containsString:@"Incoming"])
-            callVal = 0;
-        if([[obj valueForKey:@"stateVal"] isEqualToString:@"Connected"])
+        int callVal ;
+        if([[obj valueForKey:@"stateVal"] isEqualToString:@"Incoming"])
             callVal = 1;
-        if([[obj valueForKey:@"stateVal"] containsString:@"Dialing"])
-            callVal = 2;
-        if([[obj valueForKey:@"stateVal"] isEqualToString:@"Disconnected"])
+        else if([[obj valueForKey:@"stateVal"] isEqualToString:@"Connected"])
             callVal = 3;
+        else if([[obj valueForKey:@"stateVal"] isEqualToString:@"Dialing"])
+            callVal = 2;
+        else if([[obj valueForKey:@"stateVal"] isEqualToString:@"Disconnected"])
+            callVal = 0;
         else continue;
         
         NSNumber* callNum =  [[NSNumber alloc ] initWithInt:callVal];

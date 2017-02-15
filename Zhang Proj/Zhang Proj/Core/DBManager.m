@@ -16,8 +16,6 @@
 @property (nonatomic) NSURL* remoteURL;
 @property (nonatomic,strong,readwrite) NSManagedObjectContext* managedObjectContext;
 @property (readonly, strong, nonatomic) NSPersistentStoreCoordinator* persistentStoreCoordinator;
-//@property (nonatomic,strong) NSURL* modelURL;
-//@property (nonatomic,strong) NSURL* storeURL;
 
 @end
 
@@ -35,10 +33,13 @@
         _managedObjectContext = context;
         _persistentStoreCoordinator = coordinator;
     }
+    [self reportFileSizeOfPersistentStores];
     return self;
 }
 
-
+/*
+ *  Query the Core Data database for all entries associated with a given sensor by its name
+ */
 - (NSArray *) getDataForSensor:(NSString *)sensorName
 {
     
@@ -56,6 +57,32 @@
     return results;
 }
 
+/*
+ *  Determine the size (in bytes) of the Core Data store
+ */
+- (void)reportFileSizeOfPersistentStores
+{
+    NSArray *allStores = self.persistentStoreCoordinator.persistentStores;
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    
+    for (NSPersistentStore *store in allStores)
+    {
+        NSString *filePath = store.URL.path;
+        NSString* waljournal = [filePath stringByAppendingString :@"-wal"];
+        NSString* shmjournal = [filePath stringByAppendingString :@"-shm"];
+        NSDictionary *SQLiteAttrs = [fileManager attributesOfItemAtPath:filePath error:nil];
+        NSDictionary *WALAttrs = [fileManager attributesOfItemAtPath:waljournal error:nil];
+        NSDictionary *SHMAttrs = [fileManager attributesOfItemAtPath:shmjournal error:nil];
+        
+        double fileSize = [SQLiteAttrs[NSFileSize] doubleValue] + [WALAttrs[NSFileSize] doubleValue] + [SHMAttrs[NSFileSize] doubleValue];
+        NSLog(@"FileSize:%f", fileSize);
+    }
+}
+
+
+/*
+ *  Query all entries associated with a sensor by its name, captured between two time points
+ */
 - (NSArray *) getDataForSensor:(NSString *)sensorName fromStartDate:(NSDate*)startDate toEndDate:(NSDate*)endDate
 {
     //Fetch from database for all data after start date (for a sensor)
@@ -74,7 +101,9 @@
     return results;
 }
 
-
+/*
+ *  Remove all entries associated with a sensor, given by its name
+ */
 - (void)deleteAllDataForSensor:(NSString*)sensorName
 {
     NSEntityDescription *sensor = [NSEntityDescription entityForName:@"SensorDataEntity" inManagedObjectContext:_managedObjectContext];
@@ -88,6 +117,9 @@
     [_persistentStoreCoordinator executeRequest:delete withContext:_managedObjectContext error:&deleteError];
 }
 
+/*
+ *  Save a dictionary of entries { {Date:String}, ...} to the Core Data database for a sensor, specified by name
+ */
 -(void) saveData:(NSDictionary*)data forSensor:(NSString*)sensorName
 {
     //Initialize new row for MOC (Managed Object Context)
@@ -96,7 +128,7 @@
     //Populate row
     for(NSDate* timeIndex in data)
     {
-        NSLog(@"%@ %@",sensorName,[data objectForKey:timeIndex]);
+        //NSLog(@"%@ %@",sensorName,[data objectForKey:timeIndex]);
         [sensorData setStateVal:[data objectForKey:timeIndex]];
         [sensorData setName:sensorName];
         [sensorData setTime:timeIndex];
@@ -110,6 +142,9 @@
     }
 }
 
+/*
+ *  Dispatch a network thread to send sensor data to the URL specified in the DBManager's constructor
+ */
 -(void)postData:(NSArray*)data forSensor:(NSString*)sensorName
 {
     bool dataAvailable = YES;
@@ -155,7 +190,9 @@
 }
 
 
-
+/*
+ *  Serialize JSON data and send it to server
+ */
 -(void) uploadData:(NSDictionary *)postJSON
 {
     

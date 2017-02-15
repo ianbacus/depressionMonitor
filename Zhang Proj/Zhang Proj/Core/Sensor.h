@@ -19,7 +19,10 @@
 @property NSString* _name;
 @property NSMutableDictionary *dataTable;
 @property BOOL isCollecting;
+@property float samplingInterval;
 
+-(BOOL) changeCollectionInterval:(double)interval;
+-(BOOL) startCollectingAtInterval:(double)interval;
 -(NSArray*) createDataSetFromDBData:(NSArray*)dbData;
 -(instancetype) initSensor;
 -(NSDictionary*) flushData;

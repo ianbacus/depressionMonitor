@@ -6,33 +6,32 @@
 //  Copyright © 2016 Ian Bacus. All rights reserved.
 //
 
-#import "AmbientLight.h"
+#import "Battery.h"
 
-@implementation AmbientLight
-
+@implementation Battery
 
 
 - (instancetype) initSensor
 {
     self = [super init];
     if (self) {
-        self._name = @"AmbientLight";
+        self._name = @"Battery";
         self.dataTable = [[NSMutableDictionary alloc] init];
+        self.samplingInterval = 10.0f;
     }
     return self;
 }
 
 -(BOOL) startCollecting
 {
-    [super startCollecting];
-    [self startCollectingAtInterval:self.samplingInterval];
+    return [self startCollectingAtInterval:self.samplingInterval];
     return YES;
 }
 
 -(BOOL) startCollectingAtInterval:(double)interval
 {
     [super startCollecting];
-    _dataCollectionTimer = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(getScreenBrightness) userInfo:nil repeats:YES];
+    _dataCollectionTimer = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(getBatteryState) userInfo:nil repeats:YES];
     return YES;
 }
 
@@ -47,6 +46,7 @@
     return YES;
 }
 
+
 -(BOOL) stopCollecting
 {
     [super stopCollecting];
@@ -57,11 +57,23 @@
 
 
 
--(void) getScreenBrightness
+-(void) getBatteryState
 {
-    NSString* brightnessStr = [NSString stringWithFormat:@"%f",[[UIScreen mainScreen] brightness]];
-    [self saveData:brightnessStr];
+    NSString* batteryString = [NSString stringWithFormat:@"%f",[self measureBattery]];
+    [self saveData:batteryString];
 }
+
+
+
+- (double) measureBattery
+{
+    [[UIDevice currentDevice] setBatteryMonitoringEnabled:YES];
+    UIDevice *myDevice = [UIDevice currentDevice];
+    [myDevice setBatteryMonitoringEnabled:YES];
+    double batLeft = (double)[myDevice batteryLevel];
+    return batLeft;
+}
+
 
 -(NSArray*) createDataSetFromDBData:(NSArray*)dbData
 {
@@ -81,6 +93,8 @@
 
 
 @end
+
+
 
 
 

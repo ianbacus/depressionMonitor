@@ -12,7 +12,6 @@
 #import "Charts/Charts.h"
  #import <MapKit/MapKit.h>
 
-//#import "ChartsDemo-Swift.h"
 
 @interface DataViewController : UIViewController
 
@@ -23,7 +22,6 @@
 @property IBOutlet MKMapView* mapview;
 @property (nonatomic, strong) IBOutlet LineChartView *chartView;
 
-//@property (weak, nonatomic) IBOutlet UITabBar *myTabBar;
 
 -(void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item;
 

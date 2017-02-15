@@ -23,10 +23,10 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
     
     NSTimer *timer;
     
-    int frequencyMin;
     int sampleSize;
     int silenceThreshold;
     
+    float samplingInterval;
     float recordingSampleRate;
     float targetSampleRate;
     float maxFrequency;
@@ -47,9 +47,11 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
     {
         self.dataTable = [[NSMutableDictionary alloc] init];
         self._name = @"AmbientNoise";
-        frequencyMin = 5;
+        
+        self.samplingInterval = 100.0f;
         sampleSize = 30;
         silenceThreshold = 10;
+        
         
         recordingSampleRate = 44100;
         targetSampleRate = 8000;
@@ -70,7 +72,7 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
 }
 
 
--(BOOL) startCollecting
+-(BOOL) startCollectingAtInterval:(double)interval
 {
     [super startCollecting];
     /*
@@ -80,13 +82,10 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
         [self setFetchLimit:100];
     }*/
     // currentSecond = 0;
-    frequencyMin = 5;
-    sampleSize = 30;
-    silenceThreshold = 50;
     
-    saveRawData = NO;
+    samplingInterval = interval;
     
-    timer = [NSTimer scheduledTimerWithTimeInterval:60.0f*frequencyMin
+    timer = [NSTimer scheduledTimerWithTimeInterval:interval
                                              target:self
                                            selector:@selector(startRecording:)
                                            userInfo:[NSDictionary dictionaryWithObject:@0 forKey:KEY_AUDIO_CLIP_NUMBER]
@@ -95,15 +94,53 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
     return YES;
 }
 
+-(BOOL) startCollecting
+{
+    [super startCollecting];
+    [self startCollectingAtInterval:self.samplingInterval];
+    return YES;
+}
+
+-(BOOL) changeCollectionInterval:(double)interval
+{
+    if([self isCollecting])
+    {
+        [self stopCollecting];
+        [self startCollectingAtInterval:interval];
+    }
+    return YES;
+}
+
+-(BOOL) changeSamplingRate:(long)samplingRate
+{
+    [self stopCollecting];
+    recordingSampleRate = samplingRate;
+    [self startCollecting];
+    return YES;
+}
+
+-(BOOL) changeDutyCycle:(double)cycle
+{
+    sampleSize = cycle*samplingInterval;
+    return YES;
+}
+
+
+
 -(BOOL) stopCollecting
 {
     [super stopCollecting];
     [timer invalidate];
     timer = nil;
+    
+    [self.microphone stopFetchingAudio];
+    [self.recorder closeAudioFile];
+    self.microphone = nil;
     return YES;
 }
 
--(void)setupMicrophone {
+-(void)setupMicrophone
+{
     // Setup the AVAudioSession.
     AVAudioSession *session = [AVAudioSession sharedInstance];
     NSError *error;

@@ -12,19 +12,18 @@
 
 @implementation Sensor
 
-
+@synthesize _name = __name;
 @synthesize isCollecting = _isCollecting;
 
 -(instancetype) initSensor
 {
     self = [super init];
-    if(self)
-    {
-        
-    }
     return self;
 }
 
+/*
+ *  Empty the temporary, local storage for this sensor
+ */
 -(NSDictionary *) flushData
 {
     NSDictionary * retDict = [[NSDictionary alloc] initWithDictionary:_dataTable copyItems:YES];
@@ -32,18 +31,18 @@
     return retDict;
 }
 
-
--(BOOL) initTable
+/*
+ *  Store data to local, temporary storage
+ */
+-(void) saveData:(NSString *)dataStr
 {
     
-    return YES;
+    [self.dataTable setObject:dataStr forKey:[[NSDate alloc] init]];
 }
 
--(BOOL) getStatus
-{
-    return YES;
-}
-
+/*
+ *  Determine if local data store has any entries
+ */
 -(BOOL) hasData
 {
     if([self.dataTable count] > 0)
@@ -52,6 +51,29 @@
         return NO;
 }
 
+/*
+ *  Change sampling frequency. Not called in child classes that do not allow sample interval configuration
+ */
+-(BOOL) changeCollectionInterval:(double)interval
+{
+    _samplingInterval = interval;
+    return YES;
+    
+}
+
+/*
+ *  Set sampling frequency, set flag indicating sensor is collecting
+ */
+-(BOOL) startCollectingAtInterval:(double)interval
+{
+    _samplingInterval = interval;
+    _isCollecting = YES;
+    return YES;
+}
+
+/*
+ *  Set flag indicating sensor is collecting
+ */
 -(BOOL) startCollecting
 {
     NSLog(@"%@: Started collecting",self._name);
@@ -59,6 +81,9 @@
     return YES;
 }
 
+/*
+ *  Clear flag indicating sensor is collecting
+ */
 -(BOOL) stopCollecting
 {
     NSLog(@"%@: Stopped collecting",self._name);
@@ -66,12 +91,6 @@
     return YES;
 }
 
--(void) saveData:(NSString *)dataStr
-{
-    
-    //NSLog(@"%@: %@",self._name, dataStr);
-    [self.dataTable setObject:dataStr forKey:[[NSDate alloc] init]];
-}
 
 
 @end

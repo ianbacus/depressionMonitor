@@ -31,22 +31,25 @@
     [self registerAppforDetectDisplayStatus];
     return YES;
 }
+
+
+
 -(BOOL) stopCollecting
 {
     [super stopCollecting];
     uint32_t result = notify_cancel(_notifyTokenForDidChangeLockStatus);
     
     if (result == NOTIFY_STATUS_OK) {
-        NSLog(@"[screen] OK --> %d", result);
+        //NSLog(@"[screen] OK --> %d", result);
     } else {
-        NSLog(@"[screen] NO --> %d", result);
+        //NSLog(@"[screen] NO --> %d", result);
     }
 
     result = notify_cancel(_notifyTokenForDidChangeDisplayStatus);
     if (result == NOTIFY_STATUS_OK) {
-        NSLog(@"[screen] OK ==> %d", result);
+        //NSLog(@"[screen] OK ==> %d", result);
     } else {
-        NSLog(@"[screen] NO ==> %d", result);
+        //NSLog(@"[screen] NO ==> %d", result);
     }
     return YES;
 }

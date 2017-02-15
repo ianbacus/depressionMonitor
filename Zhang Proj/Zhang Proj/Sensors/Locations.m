@@ -15,8 +15,9 @@
 #import "AppDelegate.h"
 
 
-@implementation Locations{
-    NSTimer *locationTimer;
+@implementation Locations
+{
+    NSTimer *_dataCollectionTimer;
     IBOutlet CLLocationManager *locationManager;
     double defaultInterval;
     double defaultAccuracy;
@@ -28,7 +29,7 @@
     self = [super init];
     if (self) {
         self._name = @"Locations";
-        defaultInterval = 10; // seconds
+        self.samplingInterval = 10; // seconds
         defaultAccuracy = 10; // meters
         self.dataTable = [[NSMutableDictionary alloc] init];
         if (locationManager == nil){
@@ -53,17 +54,50 @@
 -(BOOL)startCollecting
 {
     [super startCollecting];
-    [self startSensorWithInterval:defaultInterval accuracy:defaultAccuracy];
+    [self startCollectingAtInterval:self.samplingInterval];
     return YES;
     
 }
 
 
+-(BOOL) startCollectingAtInterval:(double)interval
+{
+    [super startCollecting];
+    if(locationManager)
+    {
+        [self setAccuracy:10];
+        [locationManager startMonitoringSignificantLocationChanges];
+        [self getGpsData:nil];
+        
+        //sampled vs on update
+        if(interval > 0){
+            _dataCollectionTimer = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(getGpsData:) userInfo:nil repeats:YES];
+            [self getGpsData:nil];
+        }
+        else
+        {
+            [locationManager startUpdatingLocation];
+        }
+    }
+    return YES;
+}
+
+-(BOOL) changeCollectionInterval:(double)interval
+{
+    if([self isCollecting])
+    {
+        [self stopCollecting];
+        [self startCollectingAtInterval:interval];
+    }
+    
+    return YES;
+}
+
 - (BOOL)stopCollecting
 {
     [super stopCollecting];
-    [locationTimer invalidate];
-    locationTimer = nil;
+    [_dataCollectionTimer invalidate];
+    _dataCollectionTimer = nil;
     
     //[locationManager stopUpdatingHeading];
     [locationManager stopUpdatingLocation];
@@ -92,29 +126,6 @@
     return YES; 
 }
 
-- (BOOL)startSensorWithInterval:(double)interval accuracy:(double)accuracyMeter
-{
-    // Set and start a location sensor with the senseing frequency and min GPS accuracy
-    if(locationManager)
-    {
-        [self setAccuracy:accuracyMeter];
-        [locationManager startMonitoringSignificantLocationChanges];
-        [self getGpsData:nil];
-        
-        //sampled vs on update
-        if(interval > 0){
-            locationTimer = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(getGpsData:) userInfo:nil repeats:YES];
-            [self getGpsData:nil];
-        }
-        else
-        {
-            [locationManager startUpdatingLocation];
-        }
-    }
-    return YES;
-}
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
@@ -140,8 +151,8 @@
 - (void) saveLocation:(CLLocation *)location
 {
 
-    NSString * latitude = [NSString stringWithFormat:@"%.02f", location.coordinate.latitude];
-    NSString * longitude = [NSString stringWithFormat:@"%.02f", location.coordinate.longitude];
+    NSString * latitude = [NSString stringWithFormat:@"%.0005f", location.coordinate.latitude];
+    NSString * longitude = [NSString stringWithFormat:@"%.0005f", location.coordinate.longitude];
     //NSString * longitude = [[NSNumber numberWithDouble:location.coordinate.longitude] stringValue];
     double acc = ((location.verticalAccuracy + location.horizontalAccuracy) / 2);
     NSString * accuracy = [[NSNumber numberWithDouble:acc] stringValue];

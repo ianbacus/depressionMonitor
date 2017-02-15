@@ -34,6 +34,8 @@
 // A flag indicating whether we are recording or not
 @property (nonatomic, assign) BOOL isRecording;
 
+-(BOOL) changeDutyCycle:(double)cycle;
+-(BOOL) changeSamplingRate:(long)samplingRate;
 
 @end
 
