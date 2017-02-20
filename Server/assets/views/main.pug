@@ -1,0 +1,33 @@
+doctype html
+html
+	head
+		meta(http-equiv='Content-Type', content='text/html; charset=utf-8')
+		title Plotz
+		
+		
+		link(href='css/main.css', rel='stylesheet', type='text/css')
+		link(rel='stylesheet', href='//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css')
+		
+		script(src="https://code.jquery.com/jquery-1.12.4.min.js")
+		script(src="https://code.jquery.com/ui/1.12.1/jquery-ui.js")
+		
+		link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css')
+		script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js')
+
+
+		script(language='javascript', type='text/javascript', src='js/main.js')
+		script(language='javascript', type='text/javascript', src='js/flot.js')
+	body
+		.plot-container
+			#placeholder.plot-placeholder
+		div#buttonarea
+			input.innie#Activity(type='button' value='Activity')
+			input.innie#Calls(type='button' value='Social')
+			input.innie#Screen(type='button' value='Phone Screen')
+			input.innie#AmbientNoise(type='button' value='Sound')
+			input.innie#AmbientLight(type='button' value='Light')
+			input#Lower(type='text' name='upper')
+			input#Upper(type='text' name='lower')
+			input#submit(type='button' value='Submit')
+			
+			

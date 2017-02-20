@@ -10,6 +10,9 @@
 #import "IOSActivityRecognition.h"
 #import <CoreMotion/CoreMotion.h>
 
+/*
+ *  Identify stationary, walking, running, biking, driving states using motion sensors 
+ */
 @interface IOSActivityRecognition : Sensor
 @property NSString* lastUpdate;
 @end

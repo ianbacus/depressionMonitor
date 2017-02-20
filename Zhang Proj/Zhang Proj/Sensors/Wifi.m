@@ -72,20 +72,8 @@
     return YES;
 }
 
-
-
-
-
-
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-
-
 - (BOOL) getWifiInfo
 {
-    //[self broadcastRequestScan];
-    //[self broadcastScanStarted];
-    
     
     bool ret = nil;
     NSArray *ifs = (__bridge_transfer id)CNCopySupportedInterfaces();
@@ -135,10 +123,6 @@
 
 -(BOOL) collectWifiInfo
 {
-    //[self broadcastRequestScan];
-    //[self broadcastScanStarted];
-    
-    
     bool ret = nil;
     NSArray *ifs = (__bridge_transfer id)CNCopySupportedInterfaces();
     for (NSString *ifnam in ifs) {
@@ -181,44 +165,11 @@
             ret = NO;
         }
         [self saveData:wifiString];
-        //[self broadcastDetectedNewDevice];
-        
     }
     return ret;
 }
 
 
-///////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-
-/*
-
-- (void) broadcastDetectedNewDevice{
-    [[NSNotificationCenter defaultCenter] postNotificationName:ACTION_AWARE_WIFI_NEW_DEVICE
-                                                        object:nil
-                                                      userInfo:nil];
-}
-
-- (void) broadcastScanStarted{
-    
-    [[NSNotificationCenter defaultCenter] postNotificationName:ACTION_AWARE_WIFI_SCAN_STARTED
-                                                        object:nil
-                                                      userInfo:nil];
-}
-
-- (void) broadcastScanEnded{
-    [[NSNotificationCenter defaultCenter] postNotificationName:ACTION_AWARE_WIFI_SCAN_ENDED
-                                                        object:nil
-                                                      userInfo:nil];
-}
-
-- (void) broadcastRequestScan{
-    [[NSNotificationCenter defaultCenter] postNotificationName:ACTION_AWARE_WIFI_REQUEST_SCAN
-                                                        object:nil
-                                                      userInfo:nil];
-}
-
-*/
 
 
 - (BOOL) isWiFiEnabled {

@@ -10,8 +10,6 @@
 
 @implementation AmbientLight
 
-
-
 - (instancetype) initSensor
 {
     self = [super init];
@@ -56,13 +54,18 @@
 }
 
 
-
+/*
+ *  Screen brightness is a floating point value from 0 to 1. 1 Is the max brightness, 0 is the minimum. Value is saved in sensor's local storage
+ */
 -(void) getScreenBrightness
 {
     NSString* brightnessStr = [NSString stringWithFormat:@"%f",[[UIScreen mainScreen] brightness]];
     [self saveData:brightnessStr];
 }
 
+/*
+ *  Return a data series of [time,brightness] pairs
+ */
 -(NSArray*) createDataSetFromDBData:(NSArray*)dbData
 {
     NSMutableArray *ret = [[NSMutableArray alloc] init];

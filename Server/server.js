@@ -2,6 +2,7 @@ var pnum = 8080;
 var ip = '0.0.0.0';
 var ip2 = '127.0.0.1';
 var path = require('path');
+var DP = require('./dataProcessing');
 var sensorData = require('./models/sensorData');
 var mongoose = require('mongoose');
 var express =  require('express');

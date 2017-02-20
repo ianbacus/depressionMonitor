@@ -192,7 +192,6 @@
                                    NSCalendarUnitSecond
                                               fromDate:nsDate];
     
-    //hour -= [[NSTimeZone systemTimeZone] secondsFromGMT] / 3600.0;
     [dateComps setDay:dateComps.day];
     [dateComps setHour:hour];
     [dateComps setMinute:minute];
@@ -227,7 +226,6 @@
     [self initLocationSensor];
     
     /// Set a timer for a daily sync update with specific time
-    
     NSDate* dailyUpdateTime = [self getTargetNSDate:[NSDate new] hour:2 minute:0 second:0 nextDay:YES]; //2AM
     _dailyUpdateTimer = [[NSTimer alloc] initWithFireDate:dailyUpdateTime
                                                  interval:60*60*24 // daily
@@ -236,7 +234,6 @@
                                                  userInfo:nil
                                                   repeats:YES];
     
-    //_dailyUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:10 target:self selector:@selector(dailySync) userInfo:nil repeats:YES];
     NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
     [runLoop addTimer:_dailyUpdateTimer forMode:NSRunLoopCommonModes];
     
@@ -287,8 +284,6 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIDeviceBatteryStateDidChangeNotification object:nil];
     
 }
-
-////////////////////////////////////////////////////////////////////////////////////
 
 
 /*
@@ -381,6 +376,9 @@
             return NO;
     }
 }
+
+
+
 ///// Power consumption profiling
 
 /*

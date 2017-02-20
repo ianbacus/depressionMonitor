@@ -13,11 +13,11 @@
 #import <CoreLocation/CoreLocation.h>
 #import "Sensor.h"
 
+/*
+ *  Determine GPS coordinates. Configure to automatically update or poll sensor
+ */
 @interface Locations : Sensor
-
-
 @end
-
 
 @interface Locations() <CLLocationManagerDelegate>;
 @end

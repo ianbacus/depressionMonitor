@@ -17,7 +17,9 @@
 #import <AddressBookUI/AddressBookUI.h>
 
 
-//@interface Calls : AWARESensor <AWARESensorDelegate, ABPeoplePickerNavigationControllerDelegate>
+/*
+ *  Call states: incoming, outgoing, start, stop
+ */
 @interface Calls : Sensor
 
 @property (strong, nonatomic) CTCallCenter *callCenter;

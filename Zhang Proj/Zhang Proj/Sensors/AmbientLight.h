@@ -10,7 +10,9 @@
 #import "UIKit/UIKit.h"
 
 
-
+/*
+ *  Reads user screen brightness to estimate ambient light
+ */
 @interface AmbientLight : Sensor
 
 @property NSTimer* dataCollectionTimer;

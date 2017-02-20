@@ -54,12 +54,9 @@
     return YES;
 }
 
-
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-
-//dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0l),
-//dispatch_get_main_queue()
+/*
+ *  Register screen lock state notifications
+ */
 -(void)registerAppforDetectLockState {
     notify_register_dispatch("com.apple.springboard.lockcomplete", &_notifyTokenForDidChangeLockStatus,dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0l), ^(int token) {
         
@@ -83,6 +80,9 @@
     });
 }
 
+/*
+ *  Register screen on/off state notifications
+ */
 - (void) registerAppforDetectDisplayStatus {
     notify_register_dispatch("com.apple.iokit.hid.displayStatus", &_notifyTokenForDidChangeDisplayStatus,dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0l), ^(int token) {
         
@@ -106,6 +106,9 @@
     });
 }
 
+/*
+ *  Use screen on/off state, enumerate to 1/0. Store [time, state]
+ */
 -(NSArray*) createDataSetFromDBData:(NSArray*)dbData
 {
     NSMutableArray *ret = [[NSMutableArray alloc] init];

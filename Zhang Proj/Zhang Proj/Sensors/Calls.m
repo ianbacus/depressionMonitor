@@ -43,24 +43,18 @@
         if (call.callState == CTCallStateIncoming) {
             // start
             callType = @1;
-            //start = [NSDate new];
             callTypeStr = @"Incoming";
         } else if (call.callState == CTCallStateConnected){
             callType = @2;
-            //duration = [[NSDate new] timeIntervalSinceDate:start];
-            //start = [NSDate new];
             callTypeStr = @"Connected";
         } else if (call.callState == CTCallStateDialing){
             // start
             callType = @3;
-            //start = [NSDate new];
             callTypeStr = @"Dialing";
         } else if (call.callState == CTCallStateDisconnected){
             // fin
             callType = @4;
             callTypeStr = @"Disconnected";
-            //duration = [[NSDate new] timeIntervalSinceDate:start];
-            //start = [NSDate new];
         }
         
         NSLog(@"Call Duration is %d seconds @ [%@]", duration, callTypeStr);
@@ -84,15 +78,17 @@
     return YES;
 }
 
-
+/*
+ *  Enumerate call states, return [time,enum] value
+ */
 -(NSArray*) createDataSetFromDBData:(NSArray*)dbData
 {
     NSMutableArray *ret = [[NSMutableArray alloc] init];
     for(int dataIndex=0;dataIndex<[dbData count]; dataIndex++)
     {
         id obj = [dbData objectAtIndex:dataIndex];
-        //"containsString" only supported after iOS7
         
+        //Enumerate the call state by the string contents
         int callVal ;
         if([[obj valueForKey:@"stateVal"] isEqualToString:@"Incoming"])
             callVal = 1;

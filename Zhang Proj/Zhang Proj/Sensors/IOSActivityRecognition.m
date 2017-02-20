@@ -136,7 +136,9 @@
 }
 
 
-
+/*
+ *  Enumerate activity states, store [time,enum] pairs
+ */
 -(NSArray*) createDataSetFromDBData:(NSArray*)dbData
 {
     NSMutableArray *ret = [[NSMutableArray alloc] init];

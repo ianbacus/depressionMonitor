@@ -9,7 +9,7 @@
 
 #import "Sensor.h"
 
+
+
 @interface Screen : Sensor
-
-
 @end

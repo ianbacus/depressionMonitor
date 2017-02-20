@@ -28,10 +28,10 @@
 // The recorder component
 @property (nonatomic, strong) EZRecorder *recorder;
 
-// Used to calculate a rolling FFT of the incoming audio data.
+// Used to calculate a rolling FFT of the incoming audio data
 @property (nonatomic, strong) EZAudioFFTRolling *fft;
 
-// A flag indicating whether we are recording or not
+// A flag indicating if recording is active
 @property (nonatomic, assign) BOOL isRecording;
 
 -(BOOL) changeDutyCycle:(double)cycle;

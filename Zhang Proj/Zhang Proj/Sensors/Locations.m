@@ -35,7 +35,6 @@
         if (locationManager == nil){
             locationManager = [[CLLocationManager alloc] init];
             locationManager.delegate = self;
-            //locationManager.pausesLocationUpdatesAutomatically = NO;
             
             CGFloat currentVersion = [[[UIDevice currentDevice] systemVersion] floatValue];
             if (currentVersion >= 9.0)
@@ -99,7 +98,6 @@
     [_dataCollectionTimer invalidate];
     _dataCollectionTimer = nil;
     
-    //[locationManager stopUpdatingHeading];
     [locationManager stopUpdatingLocation];
     return YES;
 }
@@ -120,9 +118,9 @@
         locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers;
     }
     
-    // Set a movement threshold for new events.
-    //locationManager.distanceFilter = accuracyMeter; // meter
-    locationManager.distanceFilter = kCLDistanceFilterNone;
+    // Set a movement threshold for new events
+    locationManager.distanceFilter = accuracyMeter; // meter
+    //locationManager.distanceFilter = kCLDistanceFilterNone;
     return YES; 
 }
 
@@ -140,20 +138,13 @@
 
 - (void) locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray<CLLocation *> *)locations{
     [self saveLocation:[locations lastObject]];
-    /*
-    for (CLLocation* location in locations)
-    {
-        [self saveLocation:location];
-    }
-    */
 }
 
 - (void) saveLocation:(CLLocation *)location
 {
 
-    NSString * latitude = [NSString stringWithFormat:@"%.0005f", location.coordinate.latitude];
-    NSString * longitude = [NSString stringWithFormat:@"%.0005f", location.coordinate.longitude];
-    //NSString * longitude = [[NSNumber numberWithDouble:location.coordinate.longitude] stringValue];
+    NSString * latitude = [NSString stringWithFormat:@"%.00001f", location.coordinate.latitude];
+    NSString * longitude = [NSString stringWithFormat:@"%.00001f", location.coordinate.longitude];
     double acc = ((location.verticalAccuracy + location.horizontalAccuracy) / 2);
     NSString * accuracy = [[NSNumber numberWithDouble:acc] stringValue];
     NSString *locationStr = [@[latitude, longitude, accuracy] componentsJoinedByString:@","];

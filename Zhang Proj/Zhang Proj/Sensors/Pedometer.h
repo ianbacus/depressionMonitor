@@ -12,6 +12,9 @@
 #ifndef Pedometer_h
 #define Pedometer_h
 
+/*
+ *  Capture steps in the background. Request the number of steps over some time interval
+ */
 @interface Pedometer : Sensor
 
 @end

@@ -51,16 +51,15 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
         self.samplingInterval = 100.0f;
         sampleSize = 30;
         silenceThreshold = 10;
-        
-        
         recordingSampleRate = 44100;
-        targetSampleRate = 8000;
         
+        //Processed values from raw Audio data
         maxFrequency = 0;
         db = 0;
         rms = 0;
         lastdb = 0;
         
+        //If true: save audio file with collected samples
         saveRawData = NO;
         
         KEY_AUDIO_CLIP_NUMBER = @"key_audio_clip";
@@ -71,20 +70,59 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
     return self;
 }
 
+/*
+ *  Return [time, decibel] pairs
+ */
+-(NSArray*) createDataSetFromDBData:(NSArray*)dbData
+{
+    NSMutableArray *ret = [[NSMutableArray alloc] init];
+    for(int dataIndex=0;dataIndex<[dbData count]; dataIndex++)
+    {
+        id obj = [dbData objectAtIndex:dataIndex];
+        
+        
+        //Extract decibels from the data entry, unless silence is indicated
+        NSNumber* data = nil;
+        if([[obj valueForKey:@"stateVal"] isEqualToString:@"Silent"])
+            data = 0;
+        else
+            data =  [[NSNumber alloc ] initWithDouble:
+                         [[[obj valueForKey:@"stateVal"] componentsSeparatedByString:@","]
+                          [0] //0:dB,1:RMS,2:Frequency
+                          doubleValue] ];
+        NSDictionary *datum = [[NSDictionary alloc] initWithObjectsAndKeys:
+                               [obj valueForKey:@"time"],@"x",
+                               data,@"y",
+                               nil
+                               ];
+        [ret addObject:datum];
+    }
+    return ret;
+}
+
+/*
+ *  Save recorded audio data from one period of recording. Save decibels, RMS, and the peak frequency. If the RMS is below the silence threshold, save an entry indicating silence.
+ */
+- (void) saveAudioDataWithNumber:(int)number {
+    
+    NSString* dataString = nil;
+    if([AudioAnalysis isSilent:rms threshold:silenceThreshold])
+    {
+        dataString = @"Silent";
+    }
+    else
+    {
+        dataString = [NSString stringWithFormat:@"dB:%f, RMS:%f, Frequency:%f", db, rms, maxFrequency];
+    }
+    [self saveData:dataString];
+    //if(saveRawData) { NSData * data = [NSData dataWithContentsOfURL:[self testFilePathURLWithNumber:number]]; }
+}
+
 
 -(BOOL) startCollectingAtInterval:(double)interval
 {
     [super startCollecting];
-    /*
-    if(saveRawData){
-        [self setFetchLimit:10];
-    }else{
-        [self setFetchLimit:100];
-    }*/
-    // currentSecond = 0;
-    
     samplingInterval = interval;
-    
     timer = [NSTimer scheduledTimerWithTimeInterval:interval
                                              target:self
                                            selector:@selector(startRecording:)
@@ -111,6 +149,9 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
     return YES;
 }
 
+/*
+ *  Set the recording sample rate, resume collection
+ */
 -(BOOL) changeSamplingRate:(long)samplingRate
 {
     [self stopCollecting];
@@ -118,6 +159,8 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
     [self startCollecting];
     return YES;
 }
+
+
 
 -(BOOL) changeDutyCycle:(double)cycle
 {
@@ -139,6 +182,9 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
     return YES;
 }
 
+/*
+ *  Set up audio recording session, initialize microphone
+ */
 -(void)setupMicrophone
 {
     // Setup the AVAudioSession.
@@ -155,12 +201,13 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
     }
     
     AudioStreamBasicDescription asbd = [EZAudioUtilities floatFormatWithNumberOfChannels:1 sampleRate:recordingSampleRate];
-    //AudioStreamBasicDescription absd = [self monoSIntFormatWithSampleRate:8000];
-    
     self.microphone = [EZMicrophone microphoneWithDelegate:self withAudioStreamBasicDescription:asbd];
 }
 
 
+/*
+ *
+ */
 - (void) startRecording:(id)sender{
     if (self.microphone == nil) {
         [self setupMicrophone];
@@ -172,7 +219,7 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
     }else if([sender isKindOfClass:[NSDictionary class]]){
         number = [(NSDictionary *)sender objectForKey:KEY_AUDIO_CLIP_NUMBER];
     }else{
-        NSLog(@"An error at ambient noise sensor. There is an unknown userInfo format.");
+        NSLog(@"Ambient noise sensor error: unknown userInfo format");
     }
     
     // Create an instance of the EZAudioFFTRolling to keep a history of the incoming audio data and calculate the FFT.
@@ -191,7 +238,9 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
                afterDelay:1];
 }
 
-
+/*
+ *  Manage the duty cycle of recording, stop when the specified number of collection periods have happened
+ */
 - (void) stopRecording:(id)sender{
     dispatch_async(dispatch_get_main_queue(), ^{
         
@@ -213,36 +262,20 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
         db = 0;
         rms = 0;
         
-        // check a dutyCycle
-        if( sampleSize > number ){
+        // check dutyCycle
+        if( sampleSize > number )
+        {
             number++;
             [self startRecording:[NSDictionary dictionaryWithObject:@(number) forKey:KEY_AUDIO_CLIP_NUMBER]];
-        }else{
-            //NSLog(@"Stop Recording");
+        }
+        else
+        {
             number = 0;
             _isRecording = NO;
         }
     });
 }
 
-
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-
-- (void) saveAudioDataWithNumber:(int)number {
-    
-    NSString* dataString = nil;
-    if([AudioAnalysis isSilent:rms threshold:silenceThreshold])
-    {
-        dataString = @"Silent";
-    }
-    else
-    {
-        dataString = [NSString stringWithFormat:@"dB:%f, RMS:%f, Frequency:%f", db, rms, maxFrequency];
-    }
-    [self saveData:dataString];
-    //if(saveRawData) { NSData * data = [NSData dataWithContentsOfURL:[self testFilePathURLWithNumber:number]]; }
-}
 
 
 
@@ -301,9 +334,9 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
 }
 
 
-/////////////////////////////////////////////
-///////////////////////////////////////////////
-// FFT delegate
+/*
+ *  FFT delegate
+ */
 - (void)        fft:(EZAudioFFT *)fft
  updatedWithFFTData:(float *)fftData
          bufferSize:(vDSP_Length)bufferSize
@@ -315,18 +348,14 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
 - (void)    microphone:(EZMicrophone *)microphone
       hasAudioReceived:(float **)buffer
         withBufferSize:(UInt32)bufferSize
+// Getting audio data as an array of float buffer arrays that can be fed into the
+// EZAudioPlot, EZAudioPlotGL, or whatever visualization you would like to do with
+// the microphone data.
   withNumberOfChannels:(UInt32)numberOfChannels{
-    //__weak typeof (self) weakSelf = self;
-    // Getting audio data as an array of float buffer arrays that can be fed into the
-    // EZAudioPlot, EZAudioPlotGL, or whatever visualization you would like to do with
-    // the microphone data.
     
-    //
     // Calculate the FFT, will trigger EZAudioFFTDelegate
-    //
     [self.fft computeFFTWithBuffer:buffer[0] withBufferSize:bufferSize];
     
-    //
     // Calculate the RMS with buffer and bufferSize
     rms = [EZAudioUtilities RMS:*buffer length:bufferSize] * 1000;
     
@@ -351,8 +380,6 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
 //------------------------------------------------------------------------------
 
 
-///////////////////////////////////////////////
-///////////////////////////////////////////////
 // EZRecorderDelegate
 /**
  Triggers when the EZRecorder is explicitly closed with the `closeAudioFile` method.
@@ -374,25 +401,6 @@ static vDSP_Length const FFTViewControllerFFTWindowSize = 4096;
     //    });
 }
 
-
--(NSArray*) createDataSetFromDBData:(NSArray*)dbData
-{
-    NSMutableArray *ret = [[NSMutableArray alloc] init];
-    for(int dataIndex=0;dataIndex<[dbData count]; dataIndex++)
-    {
-        id obj = [dbData objectAtIndex:dataIndex];
-        //0:dB,1:RMS,2:Frequency
-        NSNumber* dB =  [[NSNumber alloc ] initWithDouble:
-                         [[[obj valueForKey:@"stateVal"] componentsSeparatedByString:@","][0] doubleValue] ];
-        NSDictionary *datum = [[NSDictionary alloc] initWithObjectsAndKeys:
-                               [obj valueForKey:@"time"],@"x",
-                               dB,@"y",
-                               nil
-                               ];
-        [ret addObject:datum];
-    }
-    return ret;
-}
 
 
 @end

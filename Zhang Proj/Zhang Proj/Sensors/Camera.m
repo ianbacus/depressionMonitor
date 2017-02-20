@@ -16,7 +16,6 @@
 @synthesize captureSession = _captureSession;
 @synthesize widths = _widths;
 
-//@synthesize face_bool = _face_bool;
 
 //This is the callback for the video buffer queue
 //Compliant with protocol set in the SetupCaptureSession function when the queue is configured
