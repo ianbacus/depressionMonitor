@@ -53,6 +53,8 @@
 -(void) acceptDataFromSensors;
 -(void) acceptDataFromSensor :(Sensor*)sensor;
 -(void) uploadSensorData;
+-(void) uploadAllSensorData;
+
 - (NSDate *) getTargetNSDate:(NSDate *) nsDate
                         hour:(int) hour
                       minute:(int) minute

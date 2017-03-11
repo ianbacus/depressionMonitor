@@ -155,6 +155,17 @@
     NSMutableArray *sensorData = [[NSMutableArray alloc] init];
     NSDateFormatter* timeFormat = [[NSDateFormatter alloc] init];
     [timeFormat setDateFormat:@"yyyy-MM-dd (HH:mm:ss)"];
+    
+    //Updated to use sensor-formatted data
+    jsonDict [@"userName"] =[[UIDevice currentDevice] name];
+    userData [@"sensorName"] = sensorName;
+    userData [@"sensorData"] = data;
+    jsonDict [@"userData"] = userData;
+    while(_networkThreads > 5) {}
+    _networkThreads += 1;
+    [self uploadData:jsonDict];
+
+    /*
     while(dataAvailable)
     {
         for(dataIndex=dataIndex;dataIndex<[data count]; dataIndex++)
@@ -180,12 +191,13 @@
             dataAvailable = NO;
         jsonDict [@"userName"] =[[UIDevice currentDevice] name];
         userData [@"sensorName"] = sensorName;
-        userData [@"sensorData"] = sensorData;
+        userData [@"sensorData"] = data;
         jsonDict [@"userData"] = userData;
         while(_networkThreads > 5) {}
         _networkThreads += 1;
         [self uploadData:jsonDict];
     }
+     */
     //[self deleteAllDataForSensor:sensorName];
 }
 

@@ -85,6 +85,7 @@
     {
         [self appendTodaysDataForSensor:@"Battery"];
         [self setupMultiLineChart ];
+        
     }
     
     [self performSelector:_dataVisualizationSelector withObject:defaultTimeKey];

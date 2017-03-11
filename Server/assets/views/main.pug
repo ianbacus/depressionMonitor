@@ -2,32 +2,68 @@ doctype html
 html
 	head
 		meta(http-equiv='Content-Type', content='text/html; charset=utf-8')
-		title Plotz
+		title iSee Monitor
 		
 		
 		link(href='css/main.css', rel='stylesheet', type='text/css')
 		link(rel='stylesheet', href='//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css')
+		link(rel='stylesheet', href='css/MonthPicker.css')
 		
-		script(src="https://code.jquery.com/jquery-1.12.4.min.js")
-		script(src="https://code.jquery.com/ui/1.12.1/jquery-ui.js")
 		
 		link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css')
+
+		script(src="https://code.jquery.com/jquery-1.12.4.js")
+		script(src="https://code.jquery.com/ui/1.12.1/jquery-ui.js")
+		
+		//script(src="js/jquery.min.js")
+		//script(src="js/jquery-ui.js")
 		script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js')
-
-
-		script(language='javascript', type='text/javascript', src='js/main.js')
+		script(language='javascript', type='text/javascript', src='js/MonthPicker.min.js')
+		
+		script(language='javascript', type='text/javascript', src='js/dataProcessing.js')
+		script(language='javascript', type='text/javascript', src='js/generateTestData.js')
 		script(language='javascript', type='text/javascript', src='js/flot.js')
+		script(language='javascript', type='text/javascript', src='js/jquery.flot.time.js')
+		script(language='javascript', type='text/javascript', src='js/main.js')
+		
 	body
-		.plot-container
-			#placeholder.plot-placeholder
-		div#buttonarea
-			input.innie#Activity(type='button' value='Activity')
-			input.innie#Calls(type='button' value='Social')
-			input.innie#Screen(type='button' value='Phone Screen')
-			input.innie#AmbientNoise(type='button' value='Sound')
-			input.innie#AmbientLight(type='button' value='Light')
-			input#Lower(type='text' name='upper')
-			input#Upper(type='text' name='lower')
-			input#submit(type='button' value='Submit')
+		.container
+			.row
+				//.jumbotron(style="height:150px !important;background: url('images/cloudyBanner.jpeg') center no-repeat;")
+				.row(style="height:100px; background: url('images/cloudyBanner.jpeg');")
+					h1(style='color:white;text-align:center') iSee
+			.row
+				.col-md-3#col
+					div#buttonarea
+						h4 Pick date
+						//
+							h3 Raw Data
+							input.inputButton#Activity(type='button' value='Activity')
+							input.inputButton#Calls(type='button' value='Social')
+							input.inputButton#Screen(type='button' value='Phone Screen')
+							input.inputButton#AmbientNoise(type='button' value='Sound')
+							input.inputButton#AmbientLight(type='button' value='Light')
+							input#Lower(type='text' name='upper')
+							input#Upper(type='text' name='lower')
+						#InlineMenu
+						br
+						h4 Pick data view
+							a#getD.procPick.ui-button.ui-corner-all.ui-widget(role="button") Get Data
+							table#procTable
+								tr
+									td
+										a#getSleep.procPick.ui-button.ui-corner-all.ui-widget(role="button") Sleep
+									td
+										a#getActivity.procPick.ui-button.ui-corner-all.ui-widget(role="button") Activity
+								tr
+									td
+										a#getScreen.procPick.ui-button.ui-corner-all.ui-widget(role="button") Screen
+									td
+										a#getGPS.procPick.ui-button.ui-corner-all.ui-widget(role="button") Movement
+				.col-md-9#col
+					
+					.plot-container
+						#placeholder.plot-placeholder
+					
 			
 			

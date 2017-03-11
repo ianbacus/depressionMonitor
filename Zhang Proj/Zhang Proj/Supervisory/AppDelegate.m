@@ -24,7 +24,7 @@
     if(!_sensorManager)
     {
         _dbManager = [[DBManager alloc] initWithModel:[app managedObjectModel]
-                                        remoteURL:[NSURL URLWithString:@"http://10.0.0.57:8080"]
+                                        remoteURL:[NSURL URLWithString:@"http://35.12.213.178:8080"]
                                       coordinator:[app persistentStoreCoordinator]
                                        andContext:[app managedObjectContext]];
         _sensorManager = [[SensorManager alloc] initSensorManagerWithDBManager:_dbManager];

@@ -2,7 +2,7 @@ var pnum = 8080;
 var ip = '0.0.0.0';
 var ip2 = '127.0.0.1';
 var path = require('path');
-var DP = require('./dataProcessing');
+//var DP = require('./dataProcessing');
 var sensorData = require('./models/sensorData');
 var mongoose = require('mongoose');
 var express =  require('express');
@@ -59,7 +59,12 @@ app.get('/sensorData',function(req,res)
 
 app.get('/',function(req,res)
 {
-	return res.status(200).render('main', {title: 'view Data'});
+	/*
+	sensorData.find( function (err, sd) {
+		return res.status(200).render('main', {title: 'view Data',sensorData:sd});
+	});
+	*/
+	return res.status(200).render('main', {title: 'iSee Monitor'}); 
 });
 
 app.post('',function(req,res)
@@ -88,8 +93,6 @@ app.post('',function(req,res)
 						dats.userData = sensorJSON.sensorData.append(dataUpload.userData[0].sensorData);
 						break;
 				}
-				//console.log(dats);
-				//dats.modified = new sensorData(datCopy);
 
 				dats.save(function(err) {
 					if (err){}

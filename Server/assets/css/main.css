@@ -1,5 +1,9 @@
 * {	padding: 0; margin: 0; vertical-align: top; }
 
+.bg
+{
+	background: url('images/aerialMSU.jpeg') no-repeat center center;
+}
 
 label 
 {
@@ -15,11 +19,16 @@ label
 	float: left;
 	width: 100%;
 }
-#col1 {
-	background:gray;
+#col {
+	background:#edf4ff;
+	height:100%;
+	padding:10px;
+	border: solid 10px #779ff4;
 }
+
 .container {
-	background: gray;
+	background: #779ff4;
+	width:100%;
 }
 a {	color: #069; }
 a:hover { color: #28b; }
@@ -39,10 +48,40 @@ p {
 	margin-top: 10px;
 }
 
+.procActive
+{
+	background:#3d87ff !important;
+	color:white !important;
+}
+#procTable
+{
+	background:white;
+	height:60px;
+}
+
+#procTable td
+{
+	margin:auto;
+	height:15px;
+	width:110px;
+}
+.procPick
+{
+	margin-left:5px;
+	margin-top:2.5px;
+	margin-bottom:2.5px;
+	width:100px;
+	font-size: 14px !important;
+}
+#buttonArea
+{
+
+}
+
 button {
-	font-size: 18px;
-	width: 6em !important;
-	padding: 1px 7px;
+	fsont-size: 18px;
+	wsidth: 6em !important;
+	spadding: 1px 7px;
 }
 
 .buttonTab {
@@ -71,35 +110,6 @@ input[type=checkbox] {
 {
 	background:green;
 	opacity:0.7;
-}
-
-#header {
-	position: relative;
-	width: 900px;
-	margin: auto;
-}
-
-#header h2 {
-	margin-left: 10px;
-	vertical-align: middle;
-	font-size: 42px;
-	font-weight: bold;
-	text-decoration: none;
-	color: #000;
-}
-
-#content {
-	width: 880px;
-	margin: 0 auto;
-	padding: 10px;
-}
-
-#footer {
-	margin-top: 25px;
-	margin-bottom: 10px;
-	text-align: center;
-	font-size: 12px;
-	color: #999;
 }
 
 .plot-container {

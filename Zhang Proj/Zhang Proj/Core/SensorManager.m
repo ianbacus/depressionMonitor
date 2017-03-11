@@ -12,6 +12,7 @@
 
 @implementation SensorManager
 {
+    NSTimer* dailySyncTimer;
     NSTimer* periodicBatteryTestTimer;
     NSTimer* sweepSamplingRateTimer;
 }
@@ -27,6 +28,7 @@
         [NSTimeZone setDefaultTimeZone:[NSTimeZone timeZoneWithName:@"EST"]];
         _startDate = [self getTargetNSDate:[NSDate new] hour:0 minute:0 second:0 nextDay:NO];
         _dbManager = dbManager;
+        
         _sensorsArray = [NSArray arrayWithObjects:  [[IOSActivityRecognition alloc] initSensor], //0: activity
                                                     [[Calls alloc] initSensor],                  //1: calls
                                                     [[Screen alloc] initSensor],                 //2: screen
@@ -40,6 +42,7 @@
                                                         nil];
         
     }
+    [self uploadAllSensorData];
     return self;
 }
 
@@ -70,11 +73,21 @@
 }
 
 /*
- *  Convert a range of database entries for a sensor from strings to numeric values, see the createDataSetFromDBData method for each sensor for more information
+ *  Convert a range of database entries for a sensor from strings to numeric values, see the createDataSetFromDBData method for each sensor for more information. Filter by start and end time
  */
 -(NSArray*) createDataSetForSensor:(NSString*) sensorName fromStartDate:(NSDate *)startDate toEndDate:(NSDate*)endDate
 {
     NSArray* dbData = [_dbManager getDataForSensor:sensorName fromStartDate:startDate toEndDate:endDate];
+    Sensor* sensor = [self getSensorByName:sensorName];
+    return [sensor createDataSetFromDBData:dbData];
+}
+
+/*
+ *  Convert a range of database entries for a sensor from strings to numeric values, see the createDataSetFromDBData method for each sensor for more information
+ */
+-(NSArray*) createDataSetForSensor:(NSString*) sensorName
+{
+    NSArray* dbData = [_dbManager getDataForSensor:sensorName];
     Sensor* sensor = [self getSensorByName:sensorName];
     return [sensor createDataSetFromDBData:dbData];
 }
@@ -135,17 +148,37 @@
  */
 -(void) uploadSensorData
 {
+    NSDate *nextDate = [NSDate new];
     for (Sensor* sensor in _sensorsArray)
     {
         NSString *sensorName = [sensor _name];
         //NSArray* data = [_dbManager getDataForSensor:sensorName];
+        /*
         NSArray* data = [_dbManager getDataForSensor:sensorName
                                        fromStartDate:_startDate
                                     toEndDate:[self getTargetNSDate:[NSDate new] hour:15 minute:30 second:0 nextDay:NO]];
+        */
+        NSArray *data = [self createDataSetForSensor:sensorName fromStartDate:_startDate toEndDate:nextDate];
         if([data count] > 0)
             [_dbManager postData:data forSensor:sensorName];
     }
-    _startDate = [NSDate new];
+    _startDate = nextDate;
+}
+
+/*
+ *  Upload all sensor data
+ */
+-(void) uploadAllSensorData
+{
+    NSDate *nextDate = [NSDate new];
+    for (Sensor* sensor in _sensorsArray)
+    {
+        NSString *sensorName = [sensor _name];
+        NSArray *data = [self createDataSetForSensor:sensorName];
+        if([data count] > 0)
+            [_dbManager postData:data forSensor:sensorName];
+    }
+    _startDate = nextDate;
 }
 
 /*
@@ -227,13 +260,16 @@
     
     /// Set a timer for a daily sync update with specific time
     NSDate* dailyUpdateTime = [self getTargetNSDate:[NSDate new] hour:2 minute:0 second:0 nextDay:YES]; //2AM
+    /*
     _dailyUpdateTimer = [[NSTimer alloc] initWithFireDate:dailyUpdateTime
-                                                 interval:60*60*24 // daily
+                                                 //interval:60*60*24 // daily
+                                                 interval:30
                                                    target:self
                                                  selector:@selector(dailySync)
                                                  userInfo:nil
                                                   repeats:YES];
-    
+    */
+    _dailyUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:30 target:self selector:@selector(dailySync) userInfo:nil repeats:YES];
     NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
     [runLoop addTimer:_dailyUpdateTimer forMode:NSRunLoopCommonModes];
     
